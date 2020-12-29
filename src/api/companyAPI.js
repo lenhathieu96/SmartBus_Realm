@@ -1,15 +1,15 @@
 import axiosClient from './axiosClient';
 
 const companyAPI = {
-  getVehicle: (from, isUpdate = false) => {
-    const url = `/machine/update/database?from=${from}&subject_type=vehicle&action=${
+  getVehicle: (isUpdate = false) => {
+    const url = `/machine/update/database?from=0&subject_type=vehicle&action=${
       isUpdate ? 'update' : 'create'
     }`;
     return axiosClient.get(url);
   },
 
-  getCompany: (from, isUpdate = false) => {
-    const url = `/machine/update/database?from=${from}&subject_type=company&action=${
+  getCompany: (isUpdate) => {
+    const url = `/machine/update/database?from=0&subject_type=company&action=${
       isUpdate ? 'update' : 'create'
     }`;
     return axiosClient.get(url);
@@ -50,7 +50,8 @@ const companyAPI = {
   },
 
   getModuleCompany: () => {
-    const url = `/machine/update/database?from=0&subject_type=module_company&action=create`;
+    const url =
+      '/machine/update/database?from=0&subject_type=module_company&action=create';
     return axiosClient.get(url);
   },
 
@@ -62,7 +63,7 @@ const companyAPI = {
   },
 
   updateTicketType: (from) => {
-    const url = `/machine/update/database?from='}${from}&subject_type=ticket_type&action=update`;
+    const url = `/machine/update/database?from=${from}&subject_type=ticket_type&action=update`;
     return axiosClient.get(url);
   },
 

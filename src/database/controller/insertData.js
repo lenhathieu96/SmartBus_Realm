@@ -1,8 +1,12 @@
 import Realm from 'realm';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import {Bus_StationSchema, CompanyModuleSchema, VechicleSchema} from '../model';
-import {updateBus_Station} from './updateData';
+import {
+  Bus_StationSchema,
+  CompanyModuleSchema,
+  VechicleSchema,
+  CompanySchema,
+} from '../model';
+import {updateBus_Station, updateVehicle} from './updateData';
 import companyAPI from '../../api/companyAPI';
 
 export const insertBus_Station = async (init = null) => {
@@ -79,7 +83,7 @@ export const insertVehicle = async (init = null) => {
         JSON.parse(element.subject_data),
       );
       Realm.open({
-        schema: [CompanyModuleSchema],
+        schema: [VechicleSchema],
       }).then((realm) => {
         realm.write(() => {
           vehicleList.forEach((element) => {
@@ -87,11 +91,11 @@ export const insertVehicle = async (init = null) => {
               id: element.id,
               company_id: element.company_id,
               rfid: element.rfid,
-              barcode: element.barcode,
+              barcode: element.barcode ? element.barcode : '',
               license_plates: element.license_plates,
               blt_mac: element.blt_mac ? element.blt_mac : '',
               blt_pwd: element.blt_pwd ? element.blt_pwd : '',
-              route_id: element.route_id,
+              route_id: element.route_id ? element.route_id : 0,
             };
             realm.create('Vehicle', data);
           });
@@ -102,7 +106,47 @@ export const insertVehicle = async (init = null) => {
         await updateVehicle();
       }
     } else {
-      throw Error('Failed On Get Company Module API');
+      throw Error('Failed On Get Vehicle API');
+    }
+  } catch (error) {
+    return Promise.reject(`Error On Init Company Module : ${error}`);
+  }
+};
+
+export const insertCompany = async (init) => {
+  try {
+    const res = await companyAPI.getCompany(init ? false : true);
+    if (res) {
+      const companyData = res.map((element) =>
+        JSON.parse(element.subject_data),
+      )[0];
+
+      Realm.open({
+        schema: [CompanySchema],
+      }).then((realm) => {
+        realm.write(() => {
+          let data = {
+            id: companyData.id,
+            name: companyData.name,
+            fullname: companyData.fullname,
+            address: companyData.address,
+            phone: companyData.phone,
+            tax_code: companyData.tax_code,
+            print_at: companyData.print_at ? companyData.print_at : '',
+            email: companyData.email,
+          };
+          init
+            ? realm.create('Company', data)
+            : realm.create('Company', data, 'modified');
+        });
+        realm.close();
+      });
+
+      if (init) {
+        await insertCompany();
+      }
+    } else {
+      throw Error('Failed On Get Company API');
     }
   } catch (error) {
     return Promise.reject(`Error On Init Company Module : ${error}`);

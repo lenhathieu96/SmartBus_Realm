@@ -36,3 +36,18 @@ export const VechicleSchema = {
     route_id: 'int',
   },
 };
+
+export const CompanySchema = {
+  name: 'Company',
+  primaryKey: 'id',
+  properties: {
+    id: 'int',
+    name: 'string',
+    fullname: 'string',
+    address: 'string',
+    phone: 'string',
+    tax_code: 'string',
+    print_at: 'string',
+    email: 'string',
+  },
+};

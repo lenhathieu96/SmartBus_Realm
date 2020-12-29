@@ -22,6 +22,7 @@ import {
   insertBus_Station,
   insertCompanyModule,
   insertVehicle,
+  insertCompany,
 } from '../../database/controller/insertData';
 
 import styles from './styles/index.css';
@@ -140,17 +141,18 @@ export default function ImeiScreen() {
 
   const initData = async () => {
     try {
-      await insertVehicle('init'),
-        // await insertCompany('init'),
-        // await insertTickectType('init'),
-        // await insertRoute('init'),
-        await insertBus_Station('init');
+      await insertVehicle('init');
+      await insertCompany('init');
+      // await insertTickectType('init'),
+      // await insertRoute('init'),
+      await insertBus_Station('init');
       await insertCompanyModule();
       // await insertDenomination('init');
       // await insertDenomination_Goods('init');
       // await insertSettingGlobal('init');
       // await insertCompanyModule('init');
       // await insertUser('init');
+      console.log('done');
     } catch (error) {
       console.log('Error On Init Data: ', error);
     }
