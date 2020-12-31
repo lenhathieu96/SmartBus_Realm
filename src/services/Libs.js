@@ -525,11 +525,11 @@ export function getDateTime(timestamp = null) {
 }
 
 export function getIndexShiftById(arr, shift_id) {
-  return arr.findIndex((el) => el.shift_id == shift_id);
+  return arr.findIndex((el) => el.shift_id === shift_id);
 }
 
 export function getIndexShiftByActive(arr) {
-  return arr.findIndex((el) => el.active == 1);
+  return arr.findIndex((el) => el.active === 1);
 }
 
 export function getTimestamp() {

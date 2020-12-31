@@ -14,7 +14,7 @@ const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.request.use(async (config) => {
-  const imei = await AsyncStorage.getItem('imei');
+  const imei = await AsyncStorage.getItem('@imei');
   const timestamp = getTimestamp();
   if (imei) {
     config.headers.common.Accept = 'application/json; charset=utf-8';
@@ -35,6 +35,7 @@ axiosClient.interceptors.response.use(
     }
   },
   (error) => {
+    console.log(error);
     return Promise.reject(error);
   },
 );

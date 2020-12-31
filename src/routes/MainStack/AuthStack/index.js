@@ -1,0 +1,24 @@
+import React from 'react';
+import {createStackNavigator} from '@react-navigation/stack';
+
+import UserLoginScreen from '../../../views/UserLoginScreen';
+import VehicleLoginScreen from '../../../views/VehicleLoginScreen';
+
+const Authstack = createStackNavigator();
+
+export default function DashboardStack() {
+  return (
+    <Authstack.Navigator>
+      <Authstack.Screen
+        name="user"
+        component={UserLoginScreen}
+        options={{headerShown: false}}
+      />
+      <Authstack.Screen
+        name="vehicle"
+        component={VehicleLoginScreen}
+        options={{headerShown: false}}
+      />
+    </Authstack.Navigator>
+  );
+}
