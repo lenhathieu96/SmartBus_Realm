@@ -2,8 +2,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import queryString from 'query-string';
 
-import {getTimestamp} from '../services/Libs';
-import global from '../services/Global';
+import {getTimestamp} from '../utils/Libs';
+import global from '../utils/Global';
 
 const axiosClient = axios.create({
   baseURL: global.url,

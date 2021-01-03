@@ -1,4 +1,4 @@
-import getRealm from '../../services/Realm';
+import getRealm from '../../utils/Realm';
 import ticketAPI from '../../api/ticketAPI';
 import * as TicketModel from '../model/ticketModels';
 

@@ -1,4 +1,4 @@
-import getRealm from '../../services/Realm';
+import getRealm from '../../utils/Realm';
 import companyAPI from '../../api/companyAPI';
 import * as CompanyModel from '../model/companyModels';
 

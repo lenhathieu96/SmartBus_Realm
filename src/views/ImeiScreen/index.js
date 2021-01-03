@@ -8,7 +8,7 @@ import {
   Text,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import IMEI from 'react-native-imei';
+// import IMEI from 'react-native-imei';
 import {useDispatch} from 'react-redux';
 
 import authAPI from '../../api/authAPI';
@@ -18,7 +18,7 @@ import * as CompanyController from '../../database/controller/companyControllers
 import * as BusController from '../../database/controller/busControllers';
 import * as TicketController from '../../database/controller/ticketControllers';
 
-import styles from './styles/index.css';
+import styles from './styles';
 
 export default function ImeiScreen() {
   const [isLoading, setLoading] = useState();
@@ -51,10 +51,12 @@ export default function ImeiScreen() {
     try {
       const storageImei = await AsyncStorage.getItem('@imei');
       if (!storageImei) {
-        const deviceImei = await IMEI.getImei();
-        if (deviceImei && deviceImei.length > 0) {
-          checkImei(deviceImei[0]);
-        }
+        // const deviceImei = await IMEI.getImei();
+        // if (deviceImei && deviceImei.length > 0) {
+        //   checkImei(deviceImei[0]);
+        checkImei('359261051233786');
+
+        // }
       }
     } catch (error) {
       console.log('Error On Authenticate Imei Device', error);
@@ -64,9 +66,9 @@ export default function ImeiScreen() {
   const checkImei = async (deviceImei) => {
     setLoading(true);
     try {
-      const response = await authAPI.checkImei('359261051233786');
+      const response = await authAPI.checkImei(deviceImei);
       if (response && response.code !== 404) {
-        await AsyncStorage.setItem('@imei', '359261051233786');
+        await AsyncStorage.setItem('@imei', deviceImei);
         initData();
       } else {
         await AsyncStorage.removeItem('@imei');

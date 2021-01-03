@@ -1,4 +1,4 @@
-import getRealm from '../../services/Realm';
+import getRealm from '../../utils/Realm';
 import busAPI from '../../api/busAPI';
 import * as BusModel from '../model/busModels';
 
