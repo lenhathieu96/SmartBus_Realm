@@ -3,3 +3,9 @@ export const setHaveImei = () => {
     type: 'SET HAVE IMEI',
   };
 };
+
+export const setLogin = () => {
+  return {
+    type: 'SET LOGIN',
+  };
+};

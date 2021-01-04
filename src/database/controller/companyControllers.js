@@ -1,5 +1,6 @@
 import getRealm from '../../utils/Realm';
 import companyAPI from '../../api/companyAPI';
+import Lodash from 'lodash';
 import * as CompanyModel from '../model/companyModels';
 
 export const insertCompany = async (init) => {
@@ -129,8 +130,35 @@ export const getUserByRfid = async (inputRFID) => {
     const realm = await getRealm(CompanyModel.UserSchema);
     let allUsers = realm.objects('User');
     let userData = allUsers.find((user) => user.rfid === inputRFID);
-    return userData;
+    //Deep clone object dirty way
+    const result = JSON.parse(JSON.stringify(userData));
+    realm.close();
+    return result;
   } catch (error) {
     return Promise.reject(`get user by rfid failed: ${error}`);
+  }
+};
+
+export const getCompanyData = async () => {
+  try {
+    const realm = await getRealm(CompanyModel.CompanySchema);
+    let companyData = realm.objects('Company');
+    const result = JSON.parse(JSON.stringify(companyData[0]));
+    realm.close();
+    return result;
+  } catch (error) {
+    return Promise.reject(`get company data failed: ${error}`);
+  }
+};
+
+export const getCompanyModuleData = async () => {
+  try {
+    const realm = await getRealm(CompanyModel.CompanyModuleSchema);
+    let companyModuleData = realm.objects('Module');
+    const result = JSON.parse(JSON.stringify(companyModuleData));
+    realm.close();
+    return result.map((module) => module.name);
+  } catch (error) {
+    return Promise.reject(`get company module data failed: ${error}`);
   }
 };

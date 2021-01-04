@@ -108,3 +108,16 @@ export const insertRoutes = async (init) => {
     return Promise.reject(`init routes failed: ${error}`);
   }
 };
+
+export const getVehicleByRfid = async (inputRFID) => {
+  try {
+    const realm = await getRealm(BusModel.VechicleSchema);
+    let allVehicles = realm.objects('Vehicle');
+    let vehicleData = allVehicles.find((vehicle) => vehicle.rfid === inputRFID);
+    const result = JSON.parse(JSON.stringify(vehicleData));
+    realm.close();
+    return result;
+  } catch (error) {
+    return Promise.reject(`get vehicle by rfid failed: ${error}`);
+  }
+};

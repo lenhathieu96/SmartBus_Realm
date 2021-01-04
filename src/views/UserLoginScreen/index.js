@@ -1,15 +1,23 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Alert} from 'react-native';
 import NfcManager, {NfcEvents} from 'react-native-nfc-manager';
+import {useDispatch} from 'react-redux';
 
 import RootContainer from '../../component/RootContainer';
 import TextButton from '../../component/TextButton';
 
-import {getUserByRfid} from '../../database/controller/companyControllers';
+import {setUserData} from '../../redux/actionCreator/userActions';
+import {
+  getUserByRfid,
+  getCompanyData,
+  getCompanyModuleData,
+} from '../../database/controller/companyControllers';
 
 import styles from './styles';
 
 export default function UserLoginScreen({navigation}) {
+  const dispatch = useDispatch();
+
   const [pinCode, setPinCode] = useState('D786003D');
   useEffect(() => {
     NfcManager.start().catch(
@@ -18,7 +26,7 @@ export default function UserLoginScreen({navigation}) {
     );
     NfcManager.setEventListener(NfcEvents.DiscoverTag, (tag) => {
       setPinCode(tag.id);
-      checkPinCode();
+      checkPinCode(tag.id);
     });
     NfcManager.registerTagEvent();
     return () => {
@@ -26,16 +34,52 @@ export default function UserLoginScreen({navigation}) {
       NfcManager.unregisterTagEvent();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pinCode]);
 
-  const checkPinCode = async () => {
-    const user = await getUserByRfid(pinCode);
-    if (user) {
-      if (user.disable === 1) {
-        Alert.alert('Tài khoản đã bị vô hiệu hoá');
+  const checkPinCode = async (rfid = pinCode) => {
+    try {
+      const user = await getUserByRfid(rfid);
+      if (user) {
+        if (user.disable === 1) {
+          Alert.alert('Tài khoản đã bị vô hiệu hoá');
+        } else {
+          const company = await getCompanyData();
+          const company_module = await getCompanyModuleData();
+          if (company && company_module) {
+            let userData = {
+              main_id: user.id,
+              main_rfid: user.rfid,
+              driver_name: '',
+              subDriver_name: '',
+              active: 1,
+              company,
+              company_module,
+            };
+            switch (user.role_id) {
+              case 6:
+                navigation.navigate('supervisor');
+                setPinCode('');
+                break;
+              case 4:
+                userData.driver_name = user.fullname;
+                break;
+              case 5:
+                userData.subDriver_name = user.fullname;
+                break;
+              default:
+                break;
+            }
+            dispatch(setUserData(userData));
+            navigation.navigate('vehicle');
+          } else {
+            throw 'company or module is empty';
+          }
+        }
       } else {
-        navigation.navigate('vehicle');
+        Alert.alert('Người dùng không tồn tại');
       }
+    } catch (error) {
+      console.log('Error on validate user:', error);
     }
   };
 

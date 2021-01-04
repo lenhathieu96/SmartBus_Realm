@@ -8,6 +8,10 @@ const authReducer = (state = initialState, action) => {
     case 'SET HAVE IMEI': {
       return {...state, haveImei: true};
     }
+
+    case 'SET LOGIN': {
+      return {...state, isLogin: true};
+    }
     default: {
       return state;
     }
