@@ -12,7 +12,7 @@ export const insertDenomination = async (init) => {
         JSON.parse(element.subject_data),
       )[0];
       if (denomination.length > 0) {
-        const realm = await getRealm(TicketModel.DenominationSchema);
+        const realm = await getRealm([TicketModel.DenominationSchema]);
         realm.write(() => {
           let data = {
             price: denomination,
@@ -37,7 +37,7 @@ export const insertTickectType = async (init) => {
     const res = await ticketAPI.getTicketType(init ? false : true);
     if (res) {
       const typeList = res.map((type) => JSON.parse(type.subject_data));
-      const realm = await getRealm(TicketModel.TicketTypeSchema);
+      const realm = await getRealm([TicketModel.TicketTypeSchema]);
       realm.write(() => {
         typeList.forEach((element) => {
           let data = {
@@ -71,7 +71,7 @@ export const insertTickectType = async (init) => {
 
 export const getAllTicketTypeID = async () => {
   try {
-    const realm = await getRealm(TicketModel.TicketTypeSchema);
+    const realm = await getRealm([TicketModel.TicketTypeSchema]);
     let allTicketType = realm.objects('Ticket_Type');
     if (allTicketType && allTicketType.length > 0) {
       let result = allTicketType.map((item) => item.id);
@@ -91,7 +91,7 @@ export const insertTicketAllocation = async (ticketTypeArr) => {
     const ticketAllocationArr = await ticketAPI.updateAllocateTicket(
       ticketTypeArr,
     );
-    const realm = await getRealm(TicketModel.AllocationSchema);
+    const realm = await getRealm([TicketModel.AllocationSchema]);
     realm.write(() => {
       ticketAllocationArr.forEach((ticketType) => {
         let data = {

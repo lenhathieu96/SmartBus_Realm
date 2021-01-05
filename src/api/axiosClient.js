@@ -21,7 +21,6 @@ axiosClient.interceptors.request.use(async (config) => {
     config.headers['X-IMEI'] = '359261051233786';
     config.headers.timestamp = timestamp;
   }
-  console.log(config.url);
   return config;
 });
 

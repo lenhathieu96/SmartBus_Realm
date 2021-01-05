@@ -1,20 +1,23 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Alert} from 'react-native';
 import NfcManager, {NfcEvents} from 'react-native-nfc-manager';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import RootContainer from '../../component/RootContainer';
 import TextButton from '../../component/TextButton';
 
 import {setLogin} from '../../redux/actionCreator/authActions';
+import {setVehicleData} from '../../redux/actionCreator/vehicleActions';
 
-import {getVehicleByRfid} from '../../database/controller/busControllers';
+import {
+  getVehicleByRfid,
+  getDepartStation,
+} from '../../database/controller/vehicleControllers';
 
 import styles from './styles';
 
-export default function VehicleLoginScreen({navigation}) {
+export default function VehicleLoginScreen() {
   const dispatch = useDispatch();
-  const userData = useSelector((state) => state.user);
 
   const [pinCode, setPinCode] = useState('D786003D');
   useEffect(() => {
@@ -38,6 +41,12 @@ export default function VehicleLoginScreen({navigation}) {
     try {
       const vehicle = await getVehicleByRfid(rfid);
       if (vehicle) {
+        let vehicleData = {
+          id: vehicle.id,
+          route_id: vehicle.route_id,
+          license_plates: vehicle.license_plates,
+        };
+        dispatch(setVehicleData(vehicleData));
         dispatch(setLogin());
       } else {
         Alert.alert('Phương tiện không tồn tại');

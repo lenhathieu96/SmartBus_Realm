@@ -1,6 +1,6 @@
 import getRealm from '../../utils/Realm';
 import companyAPI from '../../api/companyAPI';
-import Lodash from 'lodash';
+
 import * as CompanyModel from '../model/companyModels';
 
 export const insertCompany = async (init) => {
@@ -10,7 +10,7 @@ export const insertCompany = async (init) => {
       const companyData = res.map((element) =>
         JSON.parse(element.subject_data),
       )[0];
-      const realm = await getRealm(CompanyModel.CompanySchema);
+      const realm = await getRealm([CompanyModel.CompanySchema]);
       realm.write(() => {
         let data = {
           id: companyData.id,
@@ -42,7 +42,7 @@ export const insertUser = async (init) => {
     const res = await companyAPI.getUser(init ? false : true);
     if (res) {
       const User = res.map((type) => JSON.parse(type.subject_data));
-      const realm = await getRealm(CompanyModel.UserSchema);
+      const realm = await getRealm([CompanyModel.UserSchema]);
       realm.write(() => {
         User.forEach((element) => {
           let data = {
@@ -83,7 +83,7 @@ export const insertCompanyModule = async () => {
       const moduleList = res.map((element) =>
         JSON.parse(element.subject_data),
       )[0];
-      const realm = await getRealm(CompanyModel.CompanyModuleSchema);
+      const realm = await getRealm([CompanyModel.CompanyModuleSchema]);
 
       realm.write(() => {
         moduleList.forEach((element) => {
@@ -107,7 +107,7 @@ export const insertSettingGlobal = async () => {
       const settingGlobalList = res.map((settingGlobal) =>
         JSON.parse(settingGlobal.subject_data),
       )[0];
-      const realm = await getRealm(CompanyModel.SettingGlobalSchema);
+      const realm = await getRealm([CompanyModel.SettingGlobalSchema]);
       realm.write(() => {
         settingGlobalList.forEach((element) => {
           let data = {
@@ -127,21 +127,26 @@ export const insertSettingGlobal = async () => {
 
 export const getUserByRfid = async (inputRFID) => {
   try {
-    const realm = await getRealm(CompanyModel.UserSchema);
+    const realm = await getRealm([CompanyModel.UserSchema]);
     let allUsers = realm.objects('User');
     let userData = allUsers.find((user) => user.rfid === inputRFID);
-    //Deep clone object dirty way
-    const result = JSON.parse(JSON.stringify(userData));
-    realm.close();
-    return result;
+    if (userData) {
+      //Deep clone object dirty way
+      const result = JSON.parse(JSON.stringify(userData));
+      realm.close();
+      return result;
+    } else {
+      realm.close();
+      return null;
+    }
   } catch (error) {
-    return Promise.reject(`get user by rfid failed: ${error}`);
+    return Promise.reject(`get user by rfidfailed: ${error}`);
   }
 };
 
 export const getCompanyData = async () => {
   try {
-    const realm = await getRealm(CompanyModel.CompanySchema);
+    const realm = await getRealm([CompanyModel.CompanySchema]);
     let companyData = realm.objects('Company');
     const result = JSON.parse(JSON.stringify(companyData[0]));
     realm.close();
@@ -153,7 +158,7 @@ export const getCompanyData = async () => {
 
 export const getCompanyModuleData = async () => {
   try {
-    const realm = await getRealm(CompanyModel.CompanyModuleSchema);
+    const realm = await getRealm([CompanyModel.CompanyModuleSchema]);
     let companyModuleData = realm.objects('Module');
     const result = JSON.parse(JSON.stringify(companyModuleData));
     realm.close();
