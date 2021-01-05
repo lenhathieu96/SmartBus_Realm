@@ -12,11 +12,11 @@ import {getVehicleByRfid} from '../../database/controller/busControllers';
 
 import styles from './styles';
 
-export default function VehicleLoginScreen({navigation}) {
+export default function VehicleLoginScreen() {
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.user);
 
-  const [pinCode, setPinCode] = useState('D786003D');
+  const [pinCode, setPinCode] = useState('4726E63C');
   useEffect(() => {
     NfcManager.start().catch(
       () => console.log('NFC Not supported'),
@@ -38,7 +38,8 @@ export default function VehicleLoginScreen({navigation}) {
     try {
       const vehicle = await getVehicleByRfid(rfid);
       if (vehicle) {
-        dispatch(setLogin());
+        console.log(vehicle, 'vehicle');
+        // dispatch(setLogin());
       } else {
         Alert.alert('Phương tiện không tồn tại');
       }
