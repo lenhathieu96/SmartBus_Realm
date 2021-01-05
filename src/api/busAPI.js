@@ -21,6 +21,12 @@ const busAPI = {
     }`;
     return axiosClient.get(url);
   },
+
+  getRouteBusStation: () => {
+    const url =
+      '/machine/update/database?from=0&subject_type=route_bus_station&action=create';
+    return axiosClient.get(url);
+  },
 };
 
 export default busAPI;

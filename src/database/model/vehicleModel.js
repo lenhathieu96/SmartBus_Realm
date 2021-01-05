@@ -30,7 +30,7 @@ export const VechicleSchema = {
 };
 
 export const Bus_StationSchema = {
-  name: 'Bus_Staion',
+  name: 'Bus_Station',
   primaryKey: 'id',
   properties: {
     id: 'int',
@@ -43,5 +43,14 @@ export const Bus_StationSchema = {
     url_sound: 'string',
     company_id: 'int',
     distance: 'int',
+  },
+};
+
+export const Route_Bus_StationSchema = {
+  name: 'Route_Bus_Station',
+  properties: {
+    id: 'int',
+    route_id: 'int',
+    bus_station_id: 'int',
   },
 };

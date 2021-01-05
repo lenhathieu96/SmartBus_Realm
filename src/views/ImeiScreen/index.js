@@ -11,11 +11,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // import IMEI from 'react-native-imei';
 import {useDispatch} from 'react-redux';
 
+import RootContainer from '../../component/RootContainer';
+
 import authAPI from '../../api/authAPI';
 import {setHaveImei} from '../../redux/actionCreator/authActions';
 
 import * as CompanyController from '../../database/controller/companyControllers';
-import * as BusController from '../../database/controller/busControllers';
+import * as vehicleController from '../../database/controller/vehicleControllers';
 import * as TicketController from '../../database/controller/ticketControllers';
 
 import styles from './styles';
@@ -92,9 +94,10 @@ export default function ImeiScreen() {
 
   const initData = async () => {
     try {
-      await BusController.insertVehicle('init');
-      await BusController.insertRoutes('init');
-      await BusController.insertBus_Station('init');
+      await vehicleController.insertVehicle('init');
+      await vehicleController.insertRoutes('init');
+      await vehicleController.insertBus_Station('init');
+      await vehicleController.insertRouteBusStation();
 
       await CompanyController.insertCompany('init');
       await CompanyController.insertCompanyModule();
@@ -114,12 +117,12 @@ export default function ImeiScreen() {
   };
 
   return isLoading ? (
-    <View style={styles.loadingContainer}>
+    <RootContainer style={styles.loadingContainer}>
       <ActivityIndicator size="large" color="blue" />
       <Text style={styles.txtLoading}>
         Đang khởi tạo dữ liệu,{'\n'} vui lòng đợi trong giây lát...!
       </Text>
-    </View>
+    </RootContainer>
   ) : (
     <View style={styles.mainContainer}>
       <View style={{justifyContent: 'space-between'}}>
