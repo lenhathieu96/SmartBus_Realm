@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 //import android.util.Log;
 import android.util.Log;
@@ -15,6 +16,7 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.facebook.react.HeadlessJsTaskService;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -25,8 +27,10 @@ import javax.annotation.Nullable;
 //import static android.content.Context.ACTIVITY_SERVICE;
 
 public class GPSModule extends ReactContextBaseJavaModule {
-    public GPSModule(ReactApplicationContext reactContext) {
+    private ReactApplicationContext reactContext;
+    public GPSModule(@NonNull ReactApplicationContext reactContext) {
         super(reactContext);
+        this.reactContext = reactContext;
     }
 
     @NonNull
@@ -40,8 +44,13 @@ public class GPSModule extends ReactContextBaseJavaModule {
         Log.d("CalendarModule", "Create event called with name: " + name
                 + " and location: " + location);
     }
+
+    @ReactMethod
+    public void startTracking(){
+        this.reactContext.startService(new Intent(this.reactContext,GPSTrackingService.class));
+    }
 //    public static final String TAG = "DEVK MAIN";
-    private LocationUpdatesService mService = null;
+//    private LocationUpdatesService mService = null;
 //    public static final String VEHICLE_ID = "com.smartbus.gps.VEHICLEID";
 //    Context context;
 //    private Boolean startService = false;
@@ -94,28 +103,28 @@ public class GPSModule extends ReactContextBaseJavaModule {
 //    public void sendEvent(String eventName, @Nullable String params) {
 //      getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
 //    }
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            LocationUpdatesService.LocalBinder binder = (LocationUpdatesService.LocalBinder) service;
-            mService = binder.getService();
-            mService.requestLocationUpdates();
-            startService = true;
-        }
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mService = null;
-            startService = false;
-        }
-    };
-    @ReactMethod
-    public void start(){
-        if(mService != null && !startService){
-            activate();
-            //  Log.i("DEVK", "Start service");
-             mService.requestLocationUpdates();
-        }
-    }
+//    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+//        @Override
+//        public void onServiceConnected(ComponentName name, IBinder service) {
+//            LocationUpdatesService.LocalBinder binder = (LocationUpdatesService.LocalBinder) service;
+//            mService = binder.getService();
+//            mService.requestLocationUpdates();
+//            startService = true;
+//        }
+//        @Override
+//        public void onServiceDisconnected(ComponentName name) {
+//            mService = null;
+//            startService = false;
+//        }
+//    };
+//    @ReactMethod
+//    public void start(){
+//        if(mService != null && !startService){
+//            activate();
+//            //  Log.i("DEVK", "Start service");
+//             mService.requestLocationUpdates();
+//        }
+//    }
 //    @RequiresApi(api = Build.VERSION_CODES.ECLAIR)
 //    @ReactMethod
 //    public void disconnectService(){

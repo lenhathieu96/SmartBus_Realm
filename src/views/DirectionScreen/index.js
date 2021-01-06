@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {View, Text, ActivityIndicator} from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Geolocation from '@react-native-community/geolocation';
 
 import TextButton from '../../component/TextButton';
 import RootContainer from '../../component/RootContainer';
@@ -22,6 +23,7 @@ export default function DirectionScreen({navigation}) {
 
   useEffect(() => {
     getDirection();
+    Geolocation.getCurrentPosition((position) => console.log(position));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
