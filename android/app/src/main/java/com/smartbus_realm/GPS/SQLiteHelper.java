@@ -1,4 +1,4 @@
-package gps;
+package com.smartbus_realm.GPS;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;

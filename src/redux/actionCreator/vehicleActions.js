@@ -11,3 +11,10 @@ export const setVehicleDirection = (vehicleDirection) => {
     payload: vehicleDirection,
   };
 };
+
+export const updateVehicleLocation = (location) => {
+  return {
+    type: 'UPDATE VEHICLE LOCATION',
+    payload: location,
+  };
+};

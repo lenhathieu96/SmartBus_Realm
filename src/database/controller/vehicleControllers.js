@@ -136,13 +136,27 @@ export const insertRouteBusStation = async () => {
 
 export const getVehicleByRfid = async (inputRFID) => {
   try {
-    const realm = await getRealm([VehicleModel.VechicleSchema]);
+    const realm = await getRealm([
+      VehicleModel.VechicleSchema,
+      VehicleModel.RouteSchema,
+    ]);
     let allVehicles = realm.objects('Vehicle');
     let vehicleData = allVehicles.find((vehicle) => vehicle.rfid === inputRFID);
     if (vehicleData) {
-      const result = JSON.parse(JSON.stringify(vehicleData));
-      realm.close();
-      return result;
+      // Tìm tuyến của xe
+      let allRoute = realm.objects('Routes');
+      let vehicleRoute = allRoute.find(
+        (route) => route.id === vehicleData.route_id,
+      );
+      if (vehicleRoute) {
+        vehicleData.route_number = vehicleRoute.number;
+        const result = JSON.parse(JSON.stringify(vehicleData));
+        realm.close();
+        return result;
+      } else {
+        realm.close();
+        return null;
+      }
     } else {
       realm.close();
       return null;

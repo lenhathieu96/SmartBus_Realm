@@ -1,4 +1,4 @@
-package gps;
+package com.smartbus_realm.GPS;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;

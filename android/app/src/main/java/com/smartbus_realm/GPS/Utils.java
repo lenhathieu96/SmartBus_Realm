@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package gps;
+package com.smartbus_realm.GPS;
 
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
 import android.preference.PreferenceManager;
-
-import com.smartbus_realm.R;
-
-import java.text.DateFormat;
-import java.util.Date;
 
 class Utils {
 

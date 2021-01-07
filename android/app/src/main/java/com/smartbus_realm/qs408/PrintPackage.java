@@ -1,4 +1,4 @@
-package qs408;
+package com.smartbus_realm.qs408;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;

@@ -3,6 +3,8 @@ const initialState = {
   main_rfid: '',
   driver_name: '',
   subDriver_name: '',
+  driver_phone: '',
+  subDriver_phone: '',
   active: 0,
   company: {},
   company_module: [],
@@ -11,7 +13,7 @@ const initialState = {
 const userReducer = (state = initialState, action) => {
   switch (action.type) {
     case 'SET USER DATA':
-      return {...action.payload};
+      return Object.assign(state, action.payload);
     default:
       return state;
   }

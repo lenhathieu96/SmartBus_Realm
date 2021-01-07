@@ -62,9 +62,11 @@ export default function UserLoginScreen({navigation}) {
                 break;
               case 4:
                 userData.driver_name = user.fullname;
+                userData.driver_phone = user.phone;
                 break;
               case 5:
                 userData.subDriver_name = user.fullname;
+                userData.subDriver_phone = user.phone;
                 break;
               default:
                 break;

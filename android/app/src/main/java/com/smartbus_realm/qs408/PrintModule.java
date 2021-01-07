@@ -1,4 +1,4 @@
-package qs408;
+package com.smartbus_realm.qs408;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +12,6 @@ import android.os.Handler;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
-import android.util.Log;
 import android.widget.Toast;
 import android.zyapi.CommonApi;
 import com.facebook.react.bridge.Arguments;
@@ -1644,7 +1643,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
                             // Log.e("", "1read success:");
                         }
                         recv = new byte[ret];
-                        System.arraycopy(buf, 0, recv, 0, ret);     // Co ngoai le !!!! src.length=1025 srcPos=0 dst.length=6 dstPos=0 length=31 java.lang.ArrayIndexOutOfBoundsException AndroidRuntime: FATAL EXCEPTION: Thread-1133 at qs408.PrintModule$22.run(PrintModule.java:1646) at java.lang.System.arraycopy(Native Method)
+                        System.arraycopy(buf, 0, recv, 0, ret);     // Co ngoai le !!!! src.length=1025 srcPos=0 dst.length=6 dstPos=0 length=31 java.lang.ArrayIndexOutOfBoundsException AndroidRuntime: FATAL EXCEPTION: Thread-1133 at com.smartbus_realm.qs408.PrintModule$22.run(PrintModule.java:1646) at java.lang.System.arraycopy(Native Method)
                         String str = byteToString(buf, buf.length);
                         if (str.contains("14 00 0C 0F")) {
                             isCanprint = false;

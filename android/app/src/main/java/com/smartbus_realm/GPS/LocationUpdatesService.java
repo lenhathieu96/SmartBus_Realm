@@ -1,4 +1,4 @@
-//package gps;
+//package com.smartbus_realm.gps;
 //
 //
 //import android.app.ActivityManager;
@@ -42,8 +42,8 @@
 //import org.json.JSONObject;
 //
 //
-////import static gps.GPSModule.VEHICLE_ID;
-////import static gps.GPSModule.sqLiteHelper;
+////import static com.smartbus_realm.gps.GPSModule.VEHICLE_ID;
+////import static com.smartbus_realm.gps.GPSModule.sqLiteHelper;
 //
 //
 //public class LocationUpdatesService extends Service {

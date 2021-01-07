@@ -1,17 +1,13 @@
-package gps;
+package com.smartbus_realm.GPS;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
 import com.facebook.react.HeadlessJsTaskService;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.jstasks.HeadlessJsTaskConfig;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class GPSTrackingEventService extends HeadlessJsTaskService {
     @Nullable

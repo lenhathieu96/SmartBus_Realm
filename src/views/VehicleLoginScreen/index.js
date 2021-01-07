@@ -42,6 +42,7 @@ export default function VehicleLoginScreen() {
           id: vehicle.id,
           route_id: vehicle.route_id,
           license_plates: vehicle.license_plates,
+          route_number: vehicle.route_number,
         };
         dispatch(setVehicleData(vehicleData));
         dispatch(setLogin());
