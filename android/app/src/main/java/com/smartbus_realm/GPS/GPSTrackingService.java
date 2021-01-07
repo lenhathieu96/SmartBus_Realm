@@ -36,8 +36,6 @@ import com.smartbus_realm.MainActivity;
 import com.smartbus_realm.Model.Vehicle;
 import com.smartbus_realm.R;
 
-import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import java.net.URISyntaxException;
 
@@ -58,7 +56,7 @@ public class GPSTrackingService extends Service {
     private Socket mSocket;
     {
         try {
-            mSocket = IO.socket("https://ssrestaurant.herokuapp.com");
+            mSocket = IO.socket("https://node.busmap.com.vn:2399");
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -108,15 +106,16 @@ public class GPSTrackingService extends Service {
                             vehicleLatitude = locationResult.getLastLocation().getLatitude();
                             vehicleLongitude =  locationResult.getLastLocation().getLongitude();
 
-                            vehicle.setCoordinates(vehicleLatitude + "," + vehicleLongitude);
+                            vehicle.setCoordinates(vehicleLatitude + ", " + vehicleLongitude);
                             vehicle.setSpeed(locationResult.getLastLocation().getSpeed());
                             vehicle.setTimestamp(locationResult.getLastLocation().getTime());
 
                             Bundle bundle = new Bundle();
                             bundle.putDouble("latitude", vehicleLatitude );
                             bundle.putDouble("longitude",vehicleLongitude);
-
-                            mSocket.emit("test", gson.toJson(vehicle));
+                            Log.d("devH", gson.toJson(vehicle));
+                            Log.d("devH", String.valueOf(mSocket.connected()));
+                            mSocket.emit("receiveDataPos", gson.toJson(vehicle));
                             service.putExtras(bundle);
                             context.startService(service);
                             HeadlessJsTaskService.acquireWakeLockNow(context);

@@ -4,3 +4,10 @@ export const setUserData = (user) => {
     payload: user,
   };
 };
+
+export const updateSettingGlobal = (settingArr) => {
+  return {
+    type: 'UPDATE SETTING GLOBAL',
+    payload: settingArr,
+  };
+};

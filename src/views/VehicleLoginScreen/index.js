@@ -6,6 +6,8 @@ import {useDispatch} from 'react-redux';
 import RootContainer from '../../component/RootContainer';
 import TextButton from '../../component/TextButton';
 
+import companyAPI from '../../api/companyAPI';
+import {updateSettingGlobal} from '../../redux/actionCreator/userActions';
 import {setLogin} from '../../redux/actionCreator/authActions';
 import {setVehicleData} from '../../redux/actionCreator/vehicleActions';
 
@@ -34,6 +36,25 @@ export default function VehicleLoginScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pinCode]);
 
+  const getSettingGlobal = async () => {
+    try {
+      const res = await companyAPI.getSettingGlobal();
+      if (res) {
+        const settingGlobalList = res.map((settingGlobal) =>
+          JSON.parse(settingGlobal.subject_data),
+        )[0];
+        //get all setting with value 1
+        console.log(settingGlobalList);
+        let availableSettings = settingGlobalList
+          .filter((setting) => setting.value === '1')
+          .map((item) => item.key);
+        dispatch(updateSettingGlobal(availableSettings));
+      }
+    } catch (error) {
+      console.log('Error on get api setting global: ', error);
+    }
+  };
+
   const checkPinCode = async (rfid = pinCode) => {
     try {
       const vehicle = await getVehicleByRfid(rfid);
@@ -44,6 +65,7 @@ export default function VehicleLoginScreen() {
           license_plates: vehicle.license_plates,
           route_number: vehicle.route_number,
         };
+        await getSettingGlobal();
         dispatch(setVehicleData(vehicleData));
         dispatch(setLogin());
       } else {

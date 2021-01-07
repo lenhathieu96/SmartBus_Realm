@@ -1,12 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  NativeModules,
-  AppRegistry,
-  Alert,
-  PermissionsAndroid,
-} from 'react-native';
+import {View, Text, NativeModules, AppRegistry, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -19,6 +12,8 @@ export default function HomeScreen() {
   const dispatch = useDispatch();
 
   const [imei, setImei] = useState();
+  const [features, setFeatures] = useState([]);
+
   const vehicleProfile = useSelector((state) => state.vehicle);
   const userProfile = useSelector((state) => state.user);
 
@@ -41,15 +36,16 @@ export default function HomeScreen() {
         sub_user: userProfile.subDriver_name,
         phone_sub_user: userProfile.subDriver_phone,
       };
-      GPSModule.startTracking(JSON.stringify(vehicleData));
-      const handleNativeGPS = async (location) => {
-        dispatch(updateVehicleLocation(location));
-      };
-      AppRegistry.registerHeadlessTask('GPSModule', () => handleNativeGPS);
+      // GPSModule.startTracking(JSON.stringify(vehicleData));
+      // const handleNativeGPS = async (location) => {
+      //   dispatch(updateVehicleLocation(location));
+      // };
+      // AppRegistry.registerHeadlessTask('GPSModule', () => handleNativeGPS);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     } else {
+      //On init component
       getStorageImei();
-      checkPermissions();
+      getAvailableFeatures();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imei]);
@@ -66,35 +62,27 @@ export default function HomeScreen() {
     }
   };
 
-  const checkPermissions = async () => {
-    try {
-      const permisson = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-      );
-      if (!permisson) {
-        const granted = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-        ]);
-      }
-    } catch (error) {
-      console.log('Get location permission failed: ', error);
+  const getAvailableFeatures = () => {
+    let modules = userProfile.company_module;
+    console.log(modules);
+    let availableFeatures = [];
+
+    if (modules.includes('ve_luot')) {
+      availableFeatures.push('Bán Vé');
+    }
+
+    if (
+      modules.includes('the tra truoc') ||
+      modules.includes('module_tt_sl_quet') ||
+      modules.includes('module_tt_km')
+    ) {
+      availableFeatures.push('Nạp tiền vào thẻ');
     }
   };
 
   return (
     <RootContainer>
-      <Text>
-        {Object.keys(vehicleProfile.location).length > 0
-          ? vehicleProfile.location.latitude
-          : ''}
-      </Text>
-      <Text>
-        {Object.keys(vehicleProfile.location).length > 0
-          ? vehicleProfile.location.longitude
-          : ''}
-      </Text>
-      <Text>Home Screen</Text>
+      <Text>ayyyo</Text>
     </RootContainer>
   );
 }
