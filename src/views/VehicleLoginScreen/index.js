@@ -8,17 +8,19 @@ import TextButton from '../../component/TextButton';
 
 import companyAPI from '../../api/companyAPI';
 import {updateSettingGlobal} from '../../redux/actionCreator/userActions';
-import {setLogin} from '../../redux/actionCreator/authActions';
+
 import {setVehicleData} from '../../redux/actionCreator/vehicleActions';
 
 import {getVehicleByRfid} from '../../database/controller/vehicleControllers';
 
 import styles from './styles';
 
-export default function VehicleLoginScreen() {
+export default function VehicleLoginScreen({navigation}) {
   const dispatch = useDispatch();
 
   const [pinCode, setPinCode] = useState('4726E63C');
+  const [isLoading, setLoading] = useState(false);
+
   useEffect(() => {
     NfcManager.start().catch(
       () => console.log('NFC Not supported'),
@@ -44,34 +46,36 @@ export default function VehicleLoginScreen() {
           JSON.parse(settingGlobal.subject_data),
         )[0];
         //get all setting with value 1
-        console.log(settingGlobalList);
         let availableSettings = settingGlobalList
           .filter((setting) => setting.value === '1')
           .map((item) => item.key);
         dispatch(updateSettingGlobal(availableSettings));
       }
     } catch (error) {
-      console.log('Error on get api setting global: ', error);
+      throw error;
     }
   };
 
   const checkPinCode = async (rfid = pinCode) => {
+    setLoading(true);
     try {
       const vehicle = await getVehicleByRfid(rfid);
       if (vehicle) {
         let vehicleData = {
           id: vehicle.id,
+          rfid: vehicle.rfid,
           route_id: vehicle.route_id,
           license_plates: vehicle.license_plates,
           route_number: vehicle.route_number,
         };
         await getSettingGlobal();
         dispatch(setVehicleData(vehicleData));
-        dispatch(setLogin());
+        navigation.navigate('direction');
       } else {
         Alert.alert('Phương tiện không tồn tại');
       }
     } catch (error) {
+      setLoading(false);
       console.log('Error on validate Vehicle:', error);
     }
   };
@@ -87,6 +91,7 @@ export default function VehicleLoginScreen() {
       />
       <TextButton
         text="Đăng Nhập"
+        isLoading={isLoading}
         onPress={() => {
           checkPinCode();
         }}

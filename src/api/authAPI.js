@@ -10,6 +10,15 @@ const authAPI = {
       },
     });
   },
+
+  login: (userData) => {
+    const url = '/machine/update/activities';
+    return axiosclient.post(url, userData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
 };
 
 export default authAPI;

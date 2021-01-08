@@ -1,26 +1,28 @@
 import React from 'react';
+import {View} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {useSelector} from 'react-redux';
 
 import HomeScreen from '../../../views/HomeScreen';
-import DirectionScreen from '../../../views/DirectionScreen';
+import TicketStack from './TicketStack';
 
-import {huge} from '../../../utils/Fontsize';
+import {biggest} from '../../../utils/Fontsize';
 
 const Dashboardstack = createStackNavigator();
 
 export default function DashboardStack() {
-  const company = useSelector((state) => state.user.company);
+  const userProfile = useSelector((state) => state.user);
+
   return (
-    <Dashboardstack.Navigator initialRouteName="direction">
+    <Dashboardstack.Navigator initialRouteName="home">
       <Dashboardstack.Screen
         name="home"
         component={HomeScreen}
         options={{
-          headerTitle: company.name,
+          headerTitle: `CÔNG TY ${userProfile.company.name}`,
           headerTitleStyle: {
             color: 'red',
-            fontSize: huge,
+            fontSize: biggest,
             alignSelf: 'center',
           },
           headerStyle: {
@@ -31,11 +33,26 @@ export default function DashboardStack() {
           headerLeft: null,
         }}
       />
-      <Dashboardstack.Screen
-        name="direction"
-        component={DirectionScreen}
-        options={{headerShown: false}}
-      />
+      {userProfile.company_module.includes('ve_luot') ? (
+        <Dashboardstack.Screen
+          name="ticket"
+          component={TicketStack}
+          options={{
+            headerTitle: `CÔNG TY ${userProfile.company.name}`,
+            headerTitleStyle: {
+              color: 'red',
+              fontSize: biggest,
+              alignSelf: 'center',
+            },
+            headerStyle: {
+              elevation: 0,
+              shadowOpacity: 0,
+              backgroundColor: 'transparent',
+            },
+            headerRight: () => <View />,
+          }}
+        />
+      ) : null}
     </Dashboardstack.Navigator>
   );
 }

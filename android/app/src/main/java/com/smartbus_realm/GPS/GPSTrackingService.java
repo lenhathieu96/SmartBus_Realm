@@ -37,6 +37,9 @@ import com.smartbus_realm.Model.Vehicle;
 import com.smartbus_realm.R;
 
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.net.URISyntaxException;
 
 import io.socket.client.IO;
@@ -51,16 +54,10 @@ public class GPSTrackingService extends Service {
     private Vehicle vehicle;
     private double vehicleLatitude;
     private double vehicleLongitude;
+    private String socketURL;
 
     Gson gson = new Gson();
     private Socket mSocket;
-    {
-        try {
-            mSocket = IO.socket("https://node.busmap.com.vn:2399");
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback = new LocationCallback();
@@ -100,25 +97,33 @@ public class GPSTrackingService extends Service {
                 locationCallback = new LocationCallback() {
                     @Override
                     public void onLocationResult(LocationResult locationResult) {
-                        if (locationResult != null) {
-                            Context context = getApplicationContext();
-                            Intent service = new Intent(getApplicationContext(), GPSTrackingEventService.class);
-                            vehicleLatitude = locationResult.getLastLocation().getLatitude();
-                            vehicleLongitude =  locationResult.getLastLocation().getLongitude();
+                        try {
+                            if (locationResult != null) {
+                                Context context = getApplicationContext();
+                                Intent service = new Intent(getApplicationContext(), GPSTrackingEventService.class);
+                                vehicleLatitude = locationResult.getLastLocation().getLatitude();
+                                vehicleLongitude =  locationResult.getLastLocation().getLongitude();
 
-                            vehicle.setCoordinates(vehicleLatitude + ", " + vehicleLongitude);
-                            vehicle.setSpeed(locationResult.getLastLocation().getSpeed());
-                            vehicle.setTimestamp(locationResult.getLastLocation().getTime());
+                                vehicle.setCoordinates(vehicleLatitude + ", " + vehicleLongitude);
+                                vehicle.setSpeed(locationResult.getLastLocation().getSpeed());
+                                vehicle.setTimestamp(locationResult.getLastLocation().getTime());
 
-                            Bundle bundle = new Bundle();
-                            bundle.putDouble("latitude", vehicleLatitude );
-                            bundle.putDouble("longitude",vehicleLongitude);
-                            Log.d("devH", gson.toJson(vehicle));
-                            Log.d("devH", String.valueOf(mSocket.connected()));
-                            mSocket.emit("receiveDataPos", gson.toJson(vehicle));
-                            service.putExtras(bundle);
-                            context.startService(service);
-                            HeadlessJsTaskService.acquireWakeLockNow(context);
+                                Bundle bundle = new Bundle();
+                                bundle.putDouble("latitude", vehicleLatitude );
+                                bundle.putDouble("longitude",vehicleLongitude);
+                                Log.d("devH", gson.toJson(vehicle));
+                                Log.d("devH", String.valueOf(mSocket.connected()));
+                                String vehicleJSON = gson.toJson(vehicle);
+
+                                JSONObject vehicleObject =  new JSONObject(vehicleJSON);
+                                mSocket.emit("receiveDataPos", vehicleObject);
+
+                                service.putExtras(bundle);
+                                context.startService(service);
+                                HeadlessJsTaskService.acquireWakeLockNow(context);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
                     }
                 };
@@ -149,30 +154,34 @@ public class GPSTrackingService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Bundle extras = intent.getExtras();
-        Gson gson = new Gson();
-        vehicle = gson.fromJson(extras.getString("vehicle"), Vehicle.class);
+        try {
+            Bundle extras = intent.getExtras();
+            Gson gson = new Gson();
+            vehicle = gson.fromJson(extras.getString("vehicle"), Vehicle.class);
+            mSocket = IO.socket(extras.getString("socketURL"));
+            this.handler.post(this.runnableCode);
 
-        this.handler.post(this.runnableCode);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                CHANNEL_ID =   createNotificationChannel("my_service", "My Background Service");
+            } else {
+                CHANNEL_ID = "GPS_TRACKING";
+            }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-          CHANNEL_ID =   createNotificationChannel("my_service", "My Background Service");
-        } else {
-           CHANNEL_ID = "GPS_TRACKING";
+            // Turning into a foreground service
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle("SmartBus")
+                    .setContentText("Đang hoạt động...")
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentIntent(contentIntent)
+                    .setOngoing(true)
+                    .build();
+            startForeground(SERVICE_NOTIFICATION_ID, notification);
+            return START_STICKY;
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
-
-        // Turning into a foreground service
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("SmartBus")
-                .setContentText("Đang hoạt động...")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentIntent(contentIntent)
-                .setOngoing(true)
-                .build();
-        startForeground(SERVICE_NOTIFICATION_ID, notification);
-        return START_STICKY;
     }
 
     @Nullable

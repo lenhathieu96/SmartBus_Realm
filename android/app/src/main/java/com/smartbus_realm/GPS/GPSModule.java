@@ -30,9 +30,10 @@ public class GPSModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startTracking(String vehicleData){
+    public void startTracking(String vehicleData, String socketURL){
         Bundle bundle = new Bundle();
         bundle.putString("vehicle", vehicleData);
+        bundle.putString("socketURL", socketURL);
         Intent intent = new Intent(this.reactContext,GPSTrackingService.class);
         intent.putExtras(bundle);
         this.reactContext.startService(intent);

@@ -21,7 +21,7 @@ function TextButton(props) {
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      style={[styles.TextButton, style]}>
+      style={[disabled ? styles.DisableButton : styles.TextButton, style]}>
       {isLoading ? (
         <ActivityIndicator color="white" size={bigger} />
       ) : (

@@ -2,28 +2,34 @@ import React, {useEffect, useState} from 'react';
 import {View, Text, ActivityIndicator} from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Geolocation from '@react-native-community/geolocation';
 
 import TextButton from '../../component/TextButton';
 import RootContainer from '../../component/RootContainer';
 
+import authAPI from '../../api/authAPI';
 import {getDepartStation} from '../../database/controller/vehicleControllers';
 import {setVehicleDirection} from '../../redux/actionCreator/vehicleActions';
+import {setLogin} from '../../redux/actionCreator/authActions';
+
+import {getTimestamp} from '../../utils/Libs';
 
 import * as fontSize from '../../utils/Fontsize';
 import styles from './styles';
 
 export default function DirectionScreen({navigation}) {
   const [isLoading, setLoading] = useState(true);
+  const [isAuthen, setAuthen] = useState(false);
+
+  const [chosenBtn, chooseBtn] = useState();
   const [departStation, setDepartStation] = useState('');
   const [returnStation, setReturnStation] = useState('');
 
   const dispatch = useDispatch();
   const vehicle = useSelector((state) => state.vehicle);
+  const user = useSelector((state) => state.user);
 
   useEffect(() => {
     getDirection();
-    Geolocation.getCurrentPosition((position) => console.log(position));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -32,24 +38,50 @@ export default function DirectionScreen({navigation}) {
       const result = await getDepartStation(vehicle.route_id);
       setDepartStation(result.depart);
       setReturnStation(result.return);
-      setLoading(false);
     } catch (error) {
       console.log('Error on get depart station', error);
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const chooseDirection = async (direction) => {
-    let data = {
-      direction,
-      departStation:
-        direction === 0
-          ? departStation[0].name
-          : returnStation[returnStation.length - 1].name,
-      stationList: direction === 0 ? departStation : returnStation,
-    };
-    dispatch(setVehicleDirection(data));
-    navigation.navigate('home');
+    setAuthen(true);
+    chooseBtn(direction);
+    try {
+      let vehicleData = {
+        direction,
+        departStation:
+          direction === 0
+            ? departStation[0].name
+            : returnStation[returnStation.length - 1].name,
+        stationList: direction === 0 ? departStation : returnStation,
+      };
+      dispatch(setVehicleDirection(vehicleData));
+      let userData = [
+        {
+          timestamp: getTimestamp(),
+          action: 'login',
+          subject_type: 'user',
+          user_id: user.main_id,
+          subject_data: JSON.stringify({
+            vehicle_id: vehicle.id,
+            rfid_vehicle: vehicle.rfid,
+            rfid_user: user.main_rfid,
+            station_id:
+              direction === 0
+                ? departStation[0].id
+                : returnStation[returnStation.length - 1].id,
+          }),
+        },
+      ];
+      const res = await authAPI.login(JSON.stringify(userData));
+      if (res && res.status) {
+        dispatch(setLogin());
+      }
+    } catch (error) {
+      console.log('Error on login : ', error);
+    }
+    setAuthen(false);
   };
 
   return isLoading ? (
@@ -67,6 +99,8 @@ export default function DirectionScreen({navigation}) {
         <Icon name="bus" size={1.5 * fontSize.biggest} />
         <TextButton
           style={styles.btn}
+          disabled={chosenBtn === 1}
+          isLoading={isAuthen && chosenBtn === 0}
           text={departStation ? departStation[0].name : ''}
           onPress={() => {
             chooseDirection(0);
@@ -80,6 +114,8 @@ export default function DirectionScreen({navigation}) {
           text={
             returnStation ? returnStation[returnStation.length - 1].name : ''
           }
+          disabled={chosenBtn === 0}
+          isLoading={isAuthen && chosenBtn === 1}
           onPress={() => {
             chooseDirection(1);
           }}

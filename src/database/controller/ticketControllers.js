@@ -1,6 +1,7 @@
 import getRealm from '../../utils/Realm';
 import ticketAPI from '../../api/ticketAPI';
 import * as TicketModel from '../model/ticketModels';
+import {RouteSchema} from '../model/vehicleModel';
 
 export const insertDenomination = async (init) => {
   try {
@@ -107,5 +108,30 @@ export const insertTicketAllocation = async (ticketTypeArr) => {
     realm.close();
   } catch (error) {
     return Promise.reject(`insert ticket allocation failed: ${error}`);
+  }
+};
+
+export const getTicketForRoute = async (routeID) => {
+  try {
+    const realm = await getRealm([RouteSchema, TicketModel.TicketTypeSchema]);
+    let allRoute = realm.objects('Routes');
+    let route = allRoute.find((item) => item.id === routeID);
+    let ticketArr = route.ticket_data;
+
+    let conditions = `id=`;
+    for (let i = 0; i < ticketArr.length; i++) {
+      if (i === ticketArr.length - 1) {
+        conditions += `${ticketArr[i]}`;
+      } else {
+        conditions += `${ticketArr[i]} OR id=`;
+      }
+    }
+    let allTicketType = realm.objects('Ticket_Type');
+    let ticketAvaiableArr = allTicketType.filtered(conditions);
+    let result = JSON.parse(JSON.stringify(ticketAvaiableArr));
+    realm.close();
+    return result;
+  } catch (error) {
+    return Promise.reject(`get ticket for route failed: ${error}`);
   }
 };

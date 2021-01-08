@@ -3,11 +3,15 @@ import {View, Text, NativeModules, AppRegistry, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSelector, useDispatch} from 'react-redux';
 
+import RootContainer from '../../component/RootContainer';
+import TextButton from '../../component/TextButton';
+
+import global from '../../utils/Global';
 import {updateVehicleLocation} from '../../redux/actionCreator/vehicleActions';
 
-import RootContainer from '../../component/RootContainer';
+import styles from './styles';
 
-export default function HomeScreen() {
+export default function HomeScreen({navigation}) {
   const {GPSModule} = NativeModules;
   const dispatch = useDispatch();
 
@@ -36,7 +40,10 @@ export default function HomeScreen() {
         sub_user: userProfile.subDriver_name,
         phone_sub_user: userProfile.subDriver_phone,
       };
-      // GPSModule.startTracking(JSON.stringify(vehicleData));
+      // GPSModule.startTracking(
+      //   JSON.stringify(vehicleData),
+      //   global.url_node_server,
+      // );
       // const handleNativeGPS = async (location) => {
       //   dispatch(updateVehicleLocation(location));
       // };
@@ -82,7 +89,59 @@ export default function HomeScreen() {
 
   return (
     <RootContainer>
-      <Text>ayyyo</Text>
+      <View style={styles.btnContainer}>
+        {userProfile.company_module.includes('ve_luot') ? (
+          <TextButton
+            style={styles.OptionBtn}
+            textStyle={styles.txtOptionBtn}
+            text="Bán Vé"
+            onPress={() => navigation.navigate('ticket')}
+          />
+        ) : null}
+        {userProfile.company_module.includes('the tra truoc') ||
+        userProfile.company_module.includes('module_tt_sl_quet') ||
+        userProfile.company_module.includes('module_tt_km') ? (
+          <TextButton
+            style={styles.OptionBtn}
+            textStyle={styles.txtOptionBtn}
+            text="Nạp Tiền Vào Thẻ"
+            onPress={() => console.log('nap the')}
+          />
+        ) : null}
+      </View>
+      <View style={styles.btnContainer}>
+        {userProfile.company_settingGlobal.includes(
+          'glo_hidden_login_user',
+        ) ? null : (
+          <TextButton
+            style={styles.OptionBtn}
+            textStyle={styles.txtOptionBtn}
+            text="Đăng Nhập Nhân Viên"
+            onPress={() => console.log('Đăng Nhập')}
+          />
+        )}
+
+        <TextButton
+          style={styles.OptionBtn}
+          textStyle={styles.txtOptionBtn}
+          text="Tổng Kết & Đăng Xuất"
+          onPress={() => console.log('tong ket')}
+        />
+      </View>
+      <View style={styles.profileContainer}>
+        <View style={styles.txtContainer}>
+          <Text>Tài xế: </Text>
+          <Text>{userProfile.driver_name}</Text>
+        </View>
+        <View style={styles.txtContainer}>
+          <Text>Phụ xe: </Text>
+          <Text>{userProfile.subDriver_name}</Text>
+        </View>
+        <View style={styles.txtContainer}>
+          <Text>Biển số xe: </Text>
+          <Text>{vehicleProfile.license_plates}</Text>
+        </View>
+      </View>
     </RootContainer>
   );
 }

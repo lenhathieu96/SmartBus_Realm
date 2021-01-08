@@ -16,6 +16,7 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(async (config) => {
   const imei = await AsyncStorage.getItem('@imei');
   const timestamp = getTimestamp();
+  config.timeout = 20000;
   if (imei) {
     config.headers.common.Accept = 'application/json; charset=utf-8';
     config.headers['X-IMEI'] = '359261051233786';

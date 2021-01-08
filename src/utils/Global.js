@@ -2,7 +2,7 @@ module.exports = {
   url_node_server_localhost: 'http://127.0.0.1:2309',
   // preprod
   url_ping: 'preprod.xebuytthongminh.vn',
-  url_node_server: 'https://preprod.busmap.com.vn:2300',
+  url_node_server: 'https://node.busmap.com.vn:2399',
   auth_key_node: 'NKbothkvfMetW8WUrmVN7MtVdtsy6tCo6mm7ZX9Y',
   url_avatar: 'https://preprod.xebuytthongminh.vn/img/avatar-membership/',
   url: 'https://preprod.xebuytthongminh.vn/api/v1',

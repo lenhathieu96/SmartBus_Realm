@@ -11,6 +11,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     marginBottom: 10,
   },
+  DisableButton: {
+    borderRadius: 50,
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Color.unactive,
+    marginHorizontal: 5,
+    marginBottom: 10,
+  },
   text: {
     fontWeight: 'bold',
     fontSize: fontSize.larger,
