@@ -1,4 +1,4 @@
-package com.smartbus_realm.qs408;
+package com.smartbus_realm.Print;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,12 +8,18 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Handler;
+import android.print.PrintManager;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.util.Log;
 import android.widget.Toast;
 import android.zyapi.CommonApi;
+
+import androidx.annotation.RequiresApi;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
@@ -22,8 +28,11 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.smartbus_realm.R;
+
 import org.json.JSONArray;
 import org.json.JSONException;
+
 public class PrintModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
     public static final String DEVK = "DEVK";
     private static final byte[] blodMin = new byte[]{0x1B, 0x21, 0x08};
@@ -51,6 +60,121 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
     public String getName() {
         return "PrintModule";
     }
+
+    public static void open() {
+        send(new byte[]{0x1B, 0x23, 0x23, 0x35, 0x36, 0x55, 0x50});
+    }
+    public void initGPIO() {
+        mCommonApi = new CommonApi();
+        mComFd = mCommonApi.openCom("/dev/ttyMT3", 115200, 8, 'N', 1);
+        if (mComFd > 0) {
+            isOpen = true;
+            Log.d("dev", "Print module start");
+        }
+    }
+    public static void openGPIO() {
+        mCommonApi.setGpioDir(58, 0);
+        mCommonApi.getGpioIn(58);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mCommonApi.setGpioDir(58, 1);
+                mCommonApi.setGpioOut(58, 1);
+            }
+        }, 500);
+    }
+
+    public static void send(byte[] data) {
+        if (data == null)
+            return;
+        if (mComFd > 0) {
+            mCommonApi.writeCom(mComFd, data, data.length);
+        }
+    }
+
+    private void readData() {
+        new Thread() {
+            public void run() {
+                while (isOpen) {
+                    try{
+                          Log.e("DEVK", "Chay 1read success:");
+                        int ret = 0;
+                        byte[] buf = new byte[MAX_RECV_BUF_SIZE + 1];
+                        ret = mCommonApi.readComEx(mComFd, buf, MAX_RECV_BUF_SIZE, 0, 0);
+                        if (ret <= 0) {
+                            try {
+                                sleep(1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            continue;
+                        } else {
+                            // Log.e("", "1read success:");
+                        }
+                        recv = new byte[ret];
+                        System.arraycopy(buf, 0, recv, 0, ret);     // Co ngoai le !!!! src.length=1025 srcPos=0 dst.length=6 dstPos=0 length=31 java.lang.ArrayIndexOutOfBoundsException AndroidRuntime: FATAL EXCEPTION: Thread-1133 at com.smartbus_realm.qs408.PrintModule$22.run(PrintModule.java:1646) at java.lang.System.arraycopy(Native Method)
+                        String str = byteToString(buf, buf.length);
+                        if (str.contains("14 00 0C 0F")) {
+                            isCanprint = false;
+                            Intent mIntent = new Intent("NO_PAPER");
+                            context.sendBroadcast(mIntent);
+                        } else if(isCanprint == false) {
+                            isCanprint = true;
+                            Intent mIntent = new Intent("HAVE_PAPER");
+                            context.sendBroadcast(mIntent);
+                        }
+                        if (str.contains("4D")) { //1D 42 45 D1 7A F8
+                            isCanprint = true;
+                            Intent i = new Intent("PRINTSUCCESS");
+                            context.sendBroadcast(i);
+                        }
+                    }catch (Exception e){e.printStackTrace();}
+                }
+            }
+        }.start();
+    }
+
+    private void emitNoPaper() {
+        Log.d("devH", "NO paper");
+        WritableMap params;
+        params = Arguments.createMap();
+        getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("NO_PAPER", params);
+    }
+
+    private void emitHavePaper() {
+        WritableMap params;
+        params = Arguments.createMap();
+        getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("HAVE_PAPER", params);
+    }
+    class MBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()){
+                case "HAVE_PAPER":
+                    emitHavePaper();
+                    break;
+                case "NO_PAPER":
+                    emitNoPaper();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void processPrint() {
+        WritableMap params;
+        params = Arguments.createMap();
+        params.putString("status", "success");
+        getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PRINT_PROCESS", params);
+    }
+    class PrintBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            processPrint();
+        }
+    }
+
     @ReactMethod
     private void init() {
         initGPIO();
@@ -70,35 +194,16 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
         }, 500);
         mBroadcastReceiver = new MBroadcastReceiver();
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("NOPAPER");
+        intentFilter.addAction("NO_PAPER");
+        intentFilter.addAction("HAVE_PAPER");
         context.registerReceiver(mBroadcastReceiver, intentFilter);
+
         printBroadcastReceiver = new PrintBroadcastReceiver();
         IntentFilter intentFilter1 = new IntentFilter();
         intentFilter1.addAction("PRINTSUCCESS");
         context.registerReceiver(printBroadcastReceiver, intentFilter1);
     }
-    public static void open() {
-        send(new byte[]{0x1B, 0x23, 0x23, 0x35, 0x36, 0x55, 0x50});
-    }
-    public void initGPIO() {
-        mCommonApi = new CommonApi();
-        mComFd = mCommonApi.openCom("/dev/ttyMT3", 115200, 8, 'N', 1);
-        if (mComFd > 0) {
-            isOpen = true;
-            Toast.makeText(getReactApplicationContext(), "init success", Toast.LENGTH_SHORT).show();
-        }
-    }
-    public static void openGPIO() {
-        mCommonApi.setGpioDir(58, 0);
-        mCommonApi.getGpioIn(58);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mCommonApi.setGpioDir(58, 1);
-                mCommonApi.setGpioOut(58, 1);
-            }
-        }, 500);
-    }
+
     @ReactMethod
     public void printTicketGoodsBitmap(String company, String address, String phone,
                                        String mst, String kv, String ts, String tram,
@@ -319,7 +424,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
     }
     @ReactMethod
     public void printTicketChargeFree(String company, String address, String phone, String tax_code, String number, String nameStation, String fullname,
-                                      String fullnamecustomer, String time, String expiration_date) {
+                                      String fullnamecustomer, String time, String expiration_date, Promise promise) {
         String str = "";
         str += printTextCenterVe("" + company + "\n");
         str += prinTextVe(address + "\n");
@@ -346,6 +451,8 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
                     send(new byte[]{0x0c, 0x1d});
                     send(new byte[]{0x0a, 0x0a, 0x0a, 0x0a});
                     send(new byte[]{0x1D, 0x23, 0x45});
+                }else{
+                    promise.reject("Print Failed", "Can't Print");
                 }
             }
         }, 500);
@@ -755,6 +862,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
             }
         }, 500);
     }
+
     @ReactMethod
     public void printTotal(
             String company, String address, String phone,
@@ -844,6 +952,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
             e.printStackTrace();
         }
     }
+
     @ReactMethod
     public void printSupervisor(
             String supervisor_name, String company, String address, String phone, String mst, String kh,
@@ -899,6 +1008,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
             e.printStackTrace();
         }
     }
+
     @ReactMethod
     public void printTotalBLTEndDay(
             String title,String company, String address, String driver_name,
@@ -967,6 +1077,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
             }
         }, 500);
     }
+
     @ReactMethod
     public void printTotal1(
             String company, String address, String phone,
@@ -1084,6 +1195,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
             }
         }, 500);
     }
+
     @ReactMethod
     public void printTotal2(
             String company, String address, String phone,
@@ -1242,6 +1354,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
             }
         }, 500);
     }
+
     @ReactMethod
     public void printCardMonthQnic(
             String company, String address, String phone,
@@ -1290,6 +1403,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
             }
         }, 500);
     }
+
     @ReactMethod
     public void printCardMonth(
             String company, String address, String phone,
@@ -1348,6 +1462,7 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
             }
         }, 500);
     }
+
     @ReactMethod
     public void printCardBitMap(
             String company, String address, String phone,
@@ -1426,15 +1541,8 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
 
 
     }
-    private Bitmap newBitmap(Bitmap bit1) {
-        int width = bit1.getWidth();
-        int height = bit1.getHeight();
-        Bitmap bitmap = Bitmap.createBitmap(width, height,
-                Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        canvas.drawBitmap(bit1, 0, 0, null);
-        return bitmap;
-    }
+
+
     @Override
     public void onHostResume() {
     }
@@ -1455,110 +1563,55 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
         mCommonApi.setGpioOut(58, 0);
         mCommonApi.closeCom(mComFd);
     }
-    public static void send(byte[] data) {
-        if (data == null)
-            return;
-        if (mComFd > 0) {
-            mCommonApi.writeCom(mComFd, data, data.length);
+
+
+
+    private String byteToString(byte[] b, int size) {
+        byte high, low;
+        byte maskHigh = (byte) 0xf0;
+        byte maskLow = 0x0f;
+
+        StringBuffer buf = new StringBuffer();
+
+        for (int i = 0; i < size; i++) {
+            high = (byte) ((b[i] & maskHigh) >> 4);
+            low = (byte) (b[i] & maskLow);
+            buf.append(findHex(high));
+            buf.append(findHex(low));
+            buf.append(" ");
         }
+        return buf.toString();
     }
-    public Bitmap threeBtmap2One1(Bitmap bitmap1, Bitmap bitmap2, Bitmap bitmap3) {
-        Bitmap bitmap4 = Bitmap.createBitmap(
-                bitmap1.getWidth() + bitmap2.getWidth() + bitmap3.getWidth(), bitmap2.getHeight(),
-                bitmap1.getConfig());
-        Canvas canvas = new Canvas(bitmap4);
-        canvas.drawBitmap(bitmap1, new Matrix(), null);
-        canvas.drawBitmap(bitmap2, bitmap1.getWidth(), 0, null);
-        canvas.drawBitmap(bitmap3, bitmap2.getWidth(), 0, null);
-        return bitmap4;
+    private char findHex(byte b) {
+        int t = new Byte(b).intValue();
+        t = t < 0 ? t + 16 : t;
+        if ((0 <= t) && (t <= 9)) {
+            return (char) (t + '0');
+        }
+        return (char) (t - 10 + 'A');
     }
-
-    public Bitmap twoBtmap2One1(Bitmap bitmap1, Bitmap bitmap2) {
-        Bitmap bitmap3 = Bitmap.createBitmap(
-                bitmap1.getWidth() + bitmap2.getWidth(), bitmap2.getHeight(),
-                bitmap1.getConfig());
-        Canvas canvas = new Canvas(bitmap3);
-        canvas.drawBitmap(bitmap1, new Matrix(), null);
-        canvas.drawBitmap(bitmap2, bitmap1.getWidth(), 0, null);
-        return bitmap3;
+    private static int RGB2Gray(int r, int g, int b) {
+        int gray = (int) (0.29900 * r + 0.58700 * g + 0.11400 * b); // 灰度转化公式
+        return gray;
     }
-
-    public Bitmap twoBtmap2One(Bitmap bitmap1, Bitmap bitmap2) {
-        Bitmap bitmap3 = Bitmap.createBitmap(bitmap1.getWidth(),
-                bitmap1.getHeight() + bitmap2.getHeight() - 4, bitmap1.getConfig());
-        Canvas canvas = new Canvas(bitmap3);
-        canvas.drawBitmap(bitmap1, new Matrix(), null);
-        canvas.drawBitmap(bitmap2, 0, bitmap1.getHeight(), null);
-        return bitmap3;
+    private static byte px2Byte(int x, int y, Bitmap bit) {
+        if (x < bit.getWidth() && y < bit.getHeight()) {
+            byte b;
+            int pixel = bit.getPixel(x, y);
+            int red = (pixel & 0x00ff0000) >> 16; // 取高两位
+            int green = (pixel & 0x0000ff00) >> 8; // 取中两位
+            int blue = pixel & 0x000000ff; // 取低两位
+            int gray = RGB2Gray(red, green, blue);
+            if (gray < 128) {
+                b = 1;
+            } else {
+                b = 0;
+            }
+            return b;
+        }
+        return 0;
     }
-
-    public static Bitmap textAsBitmap1(String text, int width, float textSize) {
-
-        TextPaint textPaint = new TextPaint();
-
-        textPaint.setColor(Color.BLACK);
-
-        textPaint.setTextSize(textSize);
-        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
-        StaticLayout layout = new StaticLayout(text, textPaint, width,
-                Layout.Alignment.ALIGN_NORMAL, 1.3f, 0.0f, true);
-        Bitmap bitmap = Bitmap.createBitmap(layout.getWidth(),
-                layout.getHeight() + 20, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        canvas.translate(10, 10);
-        canvas.drawColor(Color.WHITE);
-
-        layout.draw(canvas);
-        return bitmap;
-
-    }
-
-    public static Bitmap textAsBitmapBold(String text, int width, float textSize, Layout.Alignment position) {
-
-        TextPaint textPaint = new TextPaint();
-
-        textPaint.setColor(Color.BLACK);
-
-        textPaint.setTextSize(textSize);
-        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        StaticLayout layout = layout = new StaticLayout(text, textPaint, width,
-                position, 1.3f, 0.0f, true);
-        ;
-
-        Bitmap bitmap = Bitmap.createBitmap(layout.getWidth(),
-                layout.getHeight() + 15, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        canvas.translate(10, 10);
-        canvas.drawColor(Color.WHITE);
-
-        layout.draw(canvas);
-        return bitmap;
-
-    }
-
-
-    public static Bitmap textAsBitmap2(String text, int width, float textSize) {
-
-        TextPaint textPaint = new TextPaint();
-
-        textPaint.setColor(Color.BLACK);
-
-        textPaint.setTextSize(textSize);
-
-        StaticLayout layout = new StaticLayout(text, textPaint, width,
-                Layout.Alignment.ALIGN_CENTER, 1.3f, 0.0f, true);
-        Bitmap bitmap = Bitmap.createBitmap(layout.getWidth(),
-                layout.getHeight() + 7, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        canvas.translate(10, 10);
-        canvas.drawColor(Color.WHITE);
-
-        layout.draw(canvas);
-        return bitmap;
-
-    }
-
-    public static byte[] draw2PxPoint(Bitmap bmp) {
+    private static byte[] draw2PxPoint(Bitmap bmp) {
         int size = bmp.getWidth() * bmp.getHeight() / 8 + 2200;
         byte[] data = new byte[size];
         int k = 0;
@@ -1588,117 +1641,107 @@ public class PrintModule extends ReactContextBaseJavaModule implements Lifecycle
         }
         return data;
     }
-    public static byte px2Byte(int x, int y, Bitmap bit) {
-        if (x < bit.getWidth() && y < bit.getHeight()) {
-            byte b;
-            int pixel = bit.getPixel(x, y);
-            int red = (pixel & 0x00ff0000) >> 16; // 取高两位
-            int green = (pixel & 0x0000ff00) >> 8; // 取中两位
-            int blue = pixel & 0x000000ff; // 取低两位
-            int gray = RGB2Gray(red, green, blue);
-            if (gray < 128) {
-                b = 1;
-            } else {
-                b = 0;
-            }
-            return b;
-        }
-        return 0;
+    private static Bitmap textAsBitmap2(String text, int width, float textSize) {
+
+        TextPaint textPaint = new TextPaint();
+
+        textPaint.setColor(Color.BLACK);
+
+        textPaint.setTextSize(textSize);
+
+        StaticLayout layout = new StaticLayout(text, textPaint, width,
+                Layout.Alignment.ALIGN_CENTER, 1.3f, 0.0f, true);
+        Bitmap bitmap = Bitmap.createBitmap(layout.getWidth(),
+                layout.getHeight() + 7, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.translate(10, 10);
+        canvas.drawColor(Color.WHITE);
+
+        layout.draw(canvas);
+        return bitmap;
+
     }
-    private static int RGB2Gray(int r, int g, int b) {
-        int gray = (int) (0.29900 * r + 0.58700 * g + 0.11400 * b); // 灰度转化公式
-        return gray;
+    private static Bitmap textAsBitmapBold(String text, int width, float textSize, Layout.Alignment position) {
+
+        TextPaint textPaint = new TextPaint();
+
+        textPaint.setColor(Color.BLACK);
+
+        textPaint.setTextSize(textSize);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        StaticLayout layout = layout = new StaticLayout(text, textPaint, width,
+                position, 1.3f, 0.0f, true);
+        ;
+
+        Bitmap bitmap = Bitmap.createBitmap(layout.getWidth(),
+                layout.getHeight() + 15, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.translate(10, 10);
+        canvas.drawColor(Color.WHITE);
+
+        layout.draw(canvas);
+        return bitmap;
+
     }
-    class MBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Log.e(DEVK, "noPaper !!!");
-            noPaper();
-        }
+    private Bitmap twoBtmap2One1(Bitmap bitmap1, Bitmap bitmap2) {
+        Bitmap bitmap3 = Bitmap.createBitmap(
+                bitmap1.getWidth() + bitmap2.getWidth(), bitmap2.getHeight(),
+                bitmap1.getConfig());
+        Canvas canvas = new Canvas(bitmap3);
+        canvas.drawBitmap(bitmap1, new Matrix(), null);
+        canvas.drawBitmap(bitmap2, bitmap1.getWidth(), 0, null);
+        return bitmap3;
+    }
+    private Bitmap twoBtmap2One(Bitmap bitmap1, Bitmap bitmap2) {
+        Bitmap bitmap3 = Bitmap.createBitmap(bitmap1.getWidth(),
+                bitmap1.getHeight() + bitmap2.getHeight() - 4, bitmap1.getConfig());
+        Canvas canvas = new Canvas(bitmap3);
+        canvas.drawBitmap(bitmap1, new Matrix(), null);
+        canvas.drawBitmap(bitmap2, 0, bitmap1.getHeight(), null);
+        return bitmap3;
+    }
+    private static Bitmap textAsBitmap1(String text, int width, float textSize) {
+
+        TextPaint textPaint = new TextPaint();
+
+        textPaint.setColor(Color.BLACK);
+
+        textPaint.setTextSize(textSize);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        StaticLayout layout = new StaticLayout(text, textPaint, width,
+                Layout.Alignment.ALIGN_NORMAL, 1.3f, 0.0f, true);
+        Bitmap bitmap = Bitmap.createBitmap(layout.getWidth(),
+                layout.getHeight() + 20, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.translate(10, 10);
+        canvas.drawColor(Color.WHITE);
+
+        layout.draw(canvas);
+        return bitmap;
+
+    }
+    private Bitmap threeBtmap2One1(Bitmap bitmap1, Bitmap bitmap2, Bitmap bitmap3) {
+        Bitmap bitmap4 = Bitmap.createBitmap(
+                bitmap1.getWidth() + bitmap2.getWidth() + bitmap3.getWidth(), bitmap2.getHeight(),
+                bitmap1.getConfig());
+        Canvas canvas = new Canvas(bitmap4);
+        canvas.drawBitmap(bitmap1, new Matrix(), null);
+        canvas.drawBitmap(bitmap2, bitmap1.getWidth(), 0, null);
+        canvas.drawBitmap(bitmap3, bitmap2.getWidth(), 0, null);
+        return bitmap4;
+    }
+    private Bitmap newBitmap(Bitmap bit1) {
+        int width = bit1.getWidth();
+        int height = bit1.getHeight();
+        Bitmap bitmap = Bitmap.createBitmap(width, height,
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawBitmap(bit1, 0, 0, null);
+        return bitmap;
     }
 
-    class PrintBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            processPrint();
-        }
-    }
-    private void readData() {
-        new Thread() {
-            public void run() {
-                while (isOpen) {
-                    try{
-                        //  Log.e("DEVK", "Chay 1read success:");
-                        int ret = 0;
-                        byte[] buf = new byte[MAX_RECV_BUF_SIZE + 1];
-                        ret = mCommonApi.readComEx(mComFd, buf, MAX_RECV_BUF_SIZE, 0, 0);
-                        if (ret <= 0) {
-                            try {
-                                sleep(1000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            continue;
-                        } else {
-                            // Log.e("", "1read success:");
-                        }
-                        recv = new byte[ret];
-                        System.arraycopy(buf, 0, recv, 0, ret);     // Co ngoai le !!!! src.length=1025 srcPos=0 dst.length=6 dstPos=0 length=31 java.lang.ArrayIndexOutOfBoundsException AndroidRuntime: FATAL EXCEPTION: Thread-1133 at com.smartbus_realm.qs408.PrintModule$22.run(PrintModule.java:1646) at java.lang.System.arraycopy(Native Method)
-                        String str = byteToString(buf, buf.length);
-                        if (str.contains("14 00 0C 0F")) {
-                            isCanprint = false;
-                            // Log.d("DEVK no paper", "no paper");
-                            Intent mIntent = new Intent("NOPAPER");
-                            context.sendBroadcast(mIntent);
-                        } else {
-                            isCanprint = true;
-                        }
-                        if (str.contains("4D")) { //1D 42 45 D1 7A F8
-                            isCanprint = true;
-                            Intent i = new Intent("PRINTSUCCESS");
-                            context.sendBroadcast(i);
-                        }
-                    }catch (Exception e){e.printStackTrace();}
-                }
-            }
-        }.start();
-    }
-    public void processPrint() {
-        WritableMap params;
-        params = Arguments.createMap();
-        params.putString("status", "success");
-        getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PRINT_PROCESS", params);
-    }
-    public void noPaper() {
-        WritableMap params;
-        params = Arguments.createMap();
-        params.putString("status", "nopaper");
-        getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("NO_PAPER", params);
-    }
-    public String byteToString(byte[] b, int size) {
-        byte high, low;
-        byte maskHigh = (byte) 0xf0;
-        byte maskLow = 0x0f;
 
-        StringBuffer buf = new StringBuffer();
 
-        for (int i = 0; i < size; i++) {
-            high = (byte) ((b[i] & maskHigh) >> 4);
-            low = (byte) (b[i] & maskLow);
-            buf.append(findHex(high));
-            buf.append(findHex(low));
-            buf.append(" ");
-        }
-        return buf.toString();
-    }
-    private char findHex(byte b) {
-        int t = new Byte(b).intValue();
-        t = t < 0 ? t + 16 : t;
-        if ((0 <= t) && (t <= 9)) {
-            return (char) (t + '0');
-        }
-        return (char) (t - 10 + 'A');
-    }
     private String prinTextVe(final String str) {
         return str;
     }
