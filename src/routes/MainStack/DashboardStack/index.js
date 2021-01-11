@@ -1,5 +1,5 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useEffect} from 'react';
+import {View, NativeModules} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {useSelector} from 'react-redux';
 
@@ -11,7 +11,15 @@ import {bigger} from '../../../utils/Fontsize';
 const Dashboardstack = createStackNavigator();
 
 export default function DashboardStack() {
+  const {PrintModule} = NativeModules;
+
   const userProfile = useSelector((state) => state.user);
+  const deviceState = useSelector((state) => state.device);
+
+  useEffect(() => {
+    PrintModule.init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deviceState.printAvailable]);
 
   return (
     <Dashboardstack.Navigator initialRouteName="home">

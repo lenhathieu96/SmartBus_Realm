@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Text, FlatList} from 'react-native';
+import {Text, FlatList, NativeModules, Alert} from 'react-native';
 import {useSelector} from 'react-redux';
 import 'intl';
 import 'intl/locale-data/jsonp/vi-VN';
@@ -16,9 +16,12 @@ import styles from './styles';
 import RootContainer from '../../component/RootContainer';
 
 export default function BusTicketScreen() {
+  const {PrintModule} = NativeModules;
+
   const [ticketList, setTicketList] = useState([]);
 
   const vehicleProfile = useSelector((state) => state.vehicle);
+
   useEffect(() => {
     getTicketData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -35,8 +38,29 @@ export default function BusTicketScreen() {
     }
   };
 
-  const sellTicket = async (ticket) => {
-    await updateAllocation(ticket.id);
+  const sellTicket = async (data) => {
+    try {
+      const result = await PrintModule.printFreeTicket(
+        'QT-NT',
+        'dia chi ne',
+        'so dien thoai ne',
+        'tax code ne',
+        'number day',
+        'ten tram',
+        'fullname',
+        'fullname_customer',
+        'time',
+        'ngay het han',
+      );
+      if (result) {
+        console.log('print success');
+      }
+    } catch (error) {
+      console.log('Error on sell ticket: ', error);
+      if (error.code === 'Out of Paper') {
+        Alert.alert('Thông Báo!', 'Hết Giấy');
+      }
+    }
   };
 
   return (

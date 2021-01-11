@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.smartbus_realm.GPS.GPSModule;
+import com.smartbus_realm.Print.PrintModule;
 
 public class MyAppPackage  implements ReactPackage {
     @NonNull
@@ -19,6 +20,7 @@ public class MyAppPackage  implements ReactPackage {
     public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
         modules.add(new GPSModule(reactContext));
+        modules.add(new PrintModule(reactContext));
         return modules;
     }
 
