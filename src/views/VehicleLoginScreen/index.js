@@ -76,7 +76,7 @@ export default function VehicleLoginScreen({navigation}) {
       }
     } catch (error) {
       setLoading(false);
-      console.log('Error on validate Vehicle:', error);
+      console.log('Error on validate vehicle:', error);
     }
   };
 

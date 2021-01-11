@@ -4,7 +4,10 @@ import {useSelector} from 'react-redux';
 import 'intl';
 import 'intl/locale-data/jsonp/vi-VN';
 
-import {getTicketForRoute} from '../../database/controller/ticketControllers';
+import {
+  getTicketForRoute,
+  updateAllocation,
+} from '../../database/controller/ticketControllers';
 
 import TextButton from '../../component/TextButton';
 
@@ -32,8 +35,8 @@ export default function BusTicketScreen() {
     }
   };
 
-  const sellTicket = (data) => {
-    console.log(data);
+  const sellTicket = async (ticket) => {
+    await updateAllocation(ticket.id);
   };
 
   return (
@@ -53,7 +56,7 @@ export default function BusTicketScreen() {
           />
         )}
       />
-      <Text style={styles.title}>! Đối với vé tháng, vui lòng quẹt thẻ</Text>
+      <Text style={styles.txtInfo}>! Đối với vé tháng, vui lòng quẹt thẻ</Text>
     </RootContainer>
   );
 }

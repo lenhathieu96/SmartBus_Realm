@@ -6,7 +6,7 @@ import {useSelector} from 'react-redux';
 import HomeScreen from '../../../views/HomeScreen';
 import TicketStack from './TicketStack';
 
-import {biggest} from '../../../utils/Fontsize';
+import {bigger} from '../../../utils/Fontsize';
 
 const Dashboardstack = createStackNavigator();
 
@@ -22,7 +22,7 @@ export default function DashboardStack() {
           headerTitle: `CÔNG TY ${userProfile.company.name}`,
           headerTitleStyle: {
             color: 'red',
-            fontSize: biggest,
+            fontSize: bigger,
             alignSelf: 'center',
           },
           headerStyle: {
@@ -41,7 +41,7 @@ export default function DashboardStack() {
             headerTitle: `CÔNG TY ${userProfile.company.name}`,
             headerTitleStyle: {
               color: 'red',
-              fontSize: biggest,
+              fontSize: bigger,
               alignSelf: 'center',
             },
             headerStyle: {

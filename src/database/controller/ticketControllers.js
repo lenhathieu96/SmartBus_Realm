@@ -135,3 +135,27 @@ export const getTicketForRoute = async (routeID) => {
     return Promise.reject(`get ticket for route failed: ${error}`);
   }
 };
+
+export const updateAllocation = async (ticketID) => {
+  try {
+    const realm = await getRealm([TicketModel.AllocationSchema]);
+    const allAllocations = realm.objects('Allocation');
+    const ticketAllocation = allAllocations.find(
+      (item) => item.ticket_type_id === ticketID,
+    );
+    if (ticketAllocation) {
+      realm.write(() => {
+        ticketAllocation.start_number = ticketAllocation.start_number += 1;
+        realm.create('Allocation', ticketAllocation, 'modified');
+      });
+      console.log(
+        ticketAllocation.start_number + 500 === ticketAllocation.end_number,
+      );
+    } else {
+      console.log('no ticket found');
+    }
+    realm.close();
+  } catch (error) {
+    return Promise.reject(` update ticket allocation failed: ${error}`);
+  }
+};

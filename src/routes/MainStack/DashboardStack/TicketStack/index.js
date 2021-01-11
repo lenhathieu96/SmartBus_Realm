@@ -19,7 +19,7 @@ export default function TicketStack() {
       tabBarOptions={{
         activeTintColor: '#69aa6b',
         labelStyle: {
-          fontSize: fontSize.bigger,
+          fontSize: fontSize.larger,
           fontWeight: 'bold',
         },
       }}>
@@ -31,7 +31,7 @@ export default function TicketStack() {
           tabBarIcon: ({focused}) => (
             <Icon
               name="ticket-alt"
-              size={1.5 * fontSize.bigger}
+              size={fontSize.bigger}
               color={focused ? '#69aa6b' : '#b8b8b8'}
             />
           ),
@@ -46,7 +46,7 @@ export default function TicketStack() {
             tabBarIcon: ({focused}) => (
               <Icon
                 name="box-open"
-                size={1.5 * fontSize.bigger}
+                size={fontSize.bigger}
                 color={focused ? '#69aa6b' : '#b8b8b8'}
               />
             ),
