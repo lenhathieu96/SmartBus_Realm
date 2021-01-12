@@ -2,12 +2,14 @@ import React, {useEffect, useState} from 'react';
 import {View, Text, NativeModules, AppRegistry, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSelector, useDispatch} from 'react-redux';
+import {getPreciseDistance} from 'geolib';
+
+import {updateCurrentStation} from '../../redux/actionCreator/vehicleActions';
 
 import RootContainer from '../../component/RootContainer';
 import TextButton from '../../component/TextButton';
 
 import global from '../../utils/Global';
-import {updateVehicleLocation} from '../../redux/actionCreator/vehicleActions';
 
 import styles from './styles';
 
@@ -16,7 +18,6 @@ export default function HomeScreen({navigation}) {
   const dispatch = useDispatch();
 
   const [imei, setImei] = useState();
-  const [features, setFeatures] = useState([]);
 
   const vehicleProfile = useSelector((state) => state.vehicle);
   const userProfile = useSelector((state) => state.user);
@@ -40,12 +41,34 @@ export default function HomeScreen({navigation}) {
         sub_user: userProfile.subDriver_name,
         phone_sub_user: userProfile.subDriver_phone,
       };
+
+      let currentStationData =
+        vehicleProfile.stationList[vehicleProfile.current_station_index];
+      let nextStationData =
+        vehicleProfile.stationList[vehicleProfile.current_station_index + 1];
+
       // GPSModule.startTracking(
       //   JSON.stringify(vehicleData),
       //   global.url_node_server,
       // );
       // const handleNativeGPS = async (location) => {
-      //   dispatch(updateVehicleLocation(location));
+      //   const currentStationDistance = getPreciseDistance(
+      //     {latitude: location.latitude, longitude: location.longitude},
+      //     {latitude: currentStationData.lat, longitude: currentStationData.lng},
+      //     0.1,
+      //   );
+      //   const nextStationDistance = getPreciseDistance(
+      //     {latitude: location.latitude, longitude: location.longitude},
+      //     {latitude: nextStationData.lat, longitude: nextStationData.lng},
+      //     0.1,
+      //   );
+      //   if (currentStationDistance + 100 > nextStationDistance - 100) {
+      //     console.log('alo');
+      //   } else {
+      //     dispatch(updateCurrentStation());
+      //   }
+      //   // console.log(currentStationDistance, 'current distance');
+      //   // console.log(nextStationDistance, 'next distance');
       // };
       // AppRegistry.registerHeadlessTask('GPSModule', () => handleNativeGPS);
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,7 +94,6 @@ export default function HomeScreen({navigation}) {
 
   const getAvailableFeatures = () => {
     let modules = userProfile.company_module;
-    console.log(modules);
     let availableFeatures = [];
 
     if (modules.includes('ve_luot')) {
@@ -140,6 +162,14 @@ export default function HomeScreen({navigation}) {
         <View style={styles.txtContainer}>
           <Text>Biển số xe: </Text>
           <Text>{vehicleProfile.license_plates}</Text>
+        </View>
+        <View style={styles.txtContainer}>
+          <Text>Trạm hiện tại: </Text>
+          <Text>{vehicleProfile.current_station.name}</Text>
+        </View>
+        <View style={styles.txtContainer}>
+          <Text>Trạm tiếp theo: </Text>
+          <Text>{vehicleProfile.next_station.name}</Text>
         </View>
       </View>
     </RootContainer>

@@ -54,7 +54,7 @@ export default function DirectionScreen({navigation}) {
           direction === 0
             ? departStation[0].name
             : returnStation[returnStation.length - 1].name,
-        stationList: direction === 0 ? departStation : returnStation,
+        stationList: direction === 0 ? departStation : returnStation.reverse(),
       };
       dispatch(setVehicleDirection(vehicleData));
       let userData = [

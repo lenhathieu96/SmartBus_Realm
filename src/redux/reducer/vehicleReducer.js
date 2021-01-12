@@ -6,8 +6,11 @@ const initialState = {
   direction: 0,
   departStation: '',
   route_number: 0,
-  location: {},
+
+  current_station_index: 0,
   stationList: [],
+  current_station: '',
+  next_station: '',
 };
 
 const vehicleReducer = (state = initialState, action) => {
@@ -18,9 +21,29 @@ const vehicleReducer = (state = initialState, action) => {
 
     case 'SET VEHICLE DIRECTION':
       const {direction, departStation, stationList} = action.payload;
-      return {...state, direction, departStation, stationList};
-    case 'UPDATE VEHICLE LOCATION':
-      return {...state, location: action.payload};
+      return {
+        ...state,
+        direction,
+        departStation,
+        stationList,
+        current_station: stationList[0],
+        next_station: stationList[1],
+      };
+
+    case 'UPDATE CURRENT STATION':
+      let stationIndex =
+        state.current_station_index < state.stationList.length - 1
+          ? (state.current_station_index += 1)
+          : state.current_station_index;
+      return {
+        ...state,
+        current_station_index: stationIndex,
+        current_station: state.stationList[stationIndex],
+        next_station:
+          stationIndex < state.stationList.length - 1
+            ? state.stationList[(stationIndex += 1)]
+            : state.stationList[stationIndex],
+      };
 
     default:
       return state;

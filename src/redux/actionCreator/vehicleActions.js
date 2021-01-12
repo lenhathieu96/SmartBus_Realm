@@ -18,3 +18,9 @@ export const updateVehicleLocation = (location) => {
     payload: location,
   };
 };
+
+export const updateCurrentStation = () => {
+  return {
+    type: 'UPDATE CURRENT STATION',
+  };
+};
