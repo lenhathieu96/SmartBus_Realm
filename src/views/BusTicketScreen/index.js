@@ -1,28 +1,28 @@
 import React, {useEffect, useState} from 'react';
-import {Text, FlatList, NativeModules, Alert} from 'react-native';
+import {Text, FlatList, Alert} from 'react-native';
+
 import {useSelector} from 'react-redux';
 import 'intl';
 import 'intl/locale-data/jsonp/vi-VN';
-import {getPreciseDistance} from 'geolib';
-const apiKey = 'AIzaSyCMQcc8wB5qX0LjgzcpdFRoiNu5HU65n0I';
+
 import {
   getTicketForRoute,
   updateAllocation,
 } from '../../database/controller/ticketControllers';
+import {getCurrentTimeFormat, format_ticket} from '../../utils/Libs';
 
 import TextButton from '../../component/TextButton';
 
 import styles from './styles';
 
 import RootContainer from '../../component/RootContainer';
+import {PrintBusTicket} from '../../utils/Print';
 
 export default function BusTicketScreen() {
-  const AVERAGE_STATION_DISTANCE = 500;
-  const {PrintModule} = NativeModules;
-
   const [ticketList, setTicketList] = useState([]);
 
   const vehicleProfile = useSelector((state) => state.vehicle);
+  const company = useSelector((state) => state.user.company);
 
   useEffect(() => {
     getTicketData();
@@ -40,51 +40,39 @@ export default function BusTicketScreen() {
     }
   };
 
-  const getArriveStation = (stationIndex, ticketDistance) => {
-    console.log(stationIndex);
-    const distance = getPreciseDistance(
-      {
-        latitude: vehicleProfile.current_station.lat,
-        longitude: vehicleProfile.current_station.lng,
-      },
-      {
-        latitude: vehicleProfile.stationList[45].lat,
-        longitude: vehicleProfile.stationList[45].lng,
-      },
-      0.1,
-    );
-    console.log(distance);
-    console.log(vehicleProfile.stationList[45]);
-    // return distance + 2500 > ticketDistance
-    //   ? getArriveStation(stationIndex - 1, ticketDistance)
-    //   : vehicleProfile.stationList[stationIndex];
+  const getArriveStation = (ticketDistance) => {
+    const stationList = vehicleProfile.stationList;
+    const distance =
+      vehicleProfile.direction === 0
+        ? vehicleProfile.current_station.distance + ticketDistance //tuyến đi
+        : vehicleProfile.current_station.distance - ticketDistance; // tuyến về
+    const index =
+      vehicleProfile.direction === 0
+        ? stationList.findIndex((station) => station.distance > distance) //tuyến đi
+        : stationList.findIndex((station) => station.distance < distance); // tuyến về
+    if (index >= 0) {
+      return stationList[index - 1];
+    } else {
+      return stationList[stationList.length - 1];
+    }
   };
 
   const chargeNormalTicket = async (ticketData) => {
     try {
       let maxDistance = ticketData.number_km;
-      const averageStationIndex = Math.floor(
-        maxDistance / AVERAGE_STATION_DISTANCE,
+      const allocation = await updateAllocation(ticketData.id);
+      const arriveStation = getArriveStation(maxDistance);
+      ticketData.start_station = vehicleProfile.current_station.address;
+      ticketData.arrive_station = arriveStation.address;
+      ticketData.time = getCurrentTimeFormat();
+      ticketData.allocation = format_ticket(allocation);
+      ticketData.price = new Intl.NumberFormat('vi-VN').format(
+        ticketData.price,
       );
-      const arriveStation = getArriveStation(averageStationIndex, maxDistance);
-      console.log(arriveStation);
-      // const result = await PrintModule.printFreeTicket(
-      //   'QT-NT',
-      //   'dia chi ne',
-      //   'so dien thoai ne',
-      //   'tax code ne',
-      //   'number day',
-      //   'ten tram',
-      //   'fullname',
-      //   'fullname_customer',
-      //   'time',
-      //   'ngay het han',
-      // );
-      // if (result) {
-      //   console.log('print success');
-      // }
+
+      // await PrintBusTicket(company, vehicleProfile, ticketData);
     } catch (error) {
-      console.log('Error on sell ticket: ', error);
+      console.log('Error on purchase ticket: ', error);
       if (error.code === 'Out of Paper') {
         Alert.alert('Thông Báo!', 'Hết Giấy');
       }

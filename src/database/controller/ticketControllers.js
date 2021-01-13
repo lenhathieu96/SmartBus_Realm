@@ -148,13 +148,13 @@ export const updateAllocation = async (ticketID) => {
         ticketAllocation.start_number = ticketAllocation.start_number += 1;
         realm.create('Allocation', ticketAllocation, 'modified');
       });
-      console.log(
-        ticketAllocation.start_number + 500 === ticketAllocation.end_number,
-      );
+      let result = JSON.parse(JSON.stringify(ticketAllocation));
+      realm.close();
+      return result.start_number;
     } else {
-      console.log('no ticket found');
+      realm.close();
+      throw 'No Ticket Found';
     }
-    realm.close();
   } catch (error) {
     return Promise.reject(` update ticket allocation failed: ${error}`);
   }

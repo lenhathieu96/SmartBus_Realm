@@ -67,8 +67,6 @@ export default function HomeScreen({navigation}) {
       //   } else {
       //     dispatch(updateCurrentStation());
       //   }
-      //   // console.log(currentStationDistance, 'current distance');
-      //   // console.log(nextStationDistance, 'next distance');
       // };
       // AppRegistry.registerHeadlessTask('GPSModule', () => handleNativeGPS);
       // eslint-disable-next-line react-hooks/exhaustive-deps

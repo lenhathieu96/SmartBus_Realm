@@ -51,4 +51,40 @@ public class Vehicle {
     public void setSpeed(float speed) {
         this.speed = speed;
     }
+
+    public String getUser() {
+        return user;
+    }
+
+    public String getPhone_user() {
+        return phone_user;
+    }
+
+    public String getSub_user() {
+        return sub_user;
+    }
+
+    public String getPhone_sub_user() {
+        return phone_sub_user;
+    }
+
+    public int getVehicle_id() {
+        return vehicle_id;
+    }
+
+    public String getLicense_plates() {
+        return license_plates;
+    }
+
+    public String getDirection_name() {
+        return direction_name;
+    }
+
+    public int getDirection() {
+        return direction;
+    }
+
+    public int getRoute_number() {
+        return route_number;
+    }
 }

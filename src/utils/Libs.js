@@ -512,6 +512,9 @@ export function get_year_month() {
 //     return `${time[1] + 1}-${time[0]}`;
 //   }
 // }
+export function getCurrentTimeFormat() {
+  return Moment().locale('vi-VN').format('DD-MM-YYYY HH:mm:ss');
+}
 
 export function getDay(timestamp) {
   return Moment.unix(timestamp).format('DD-MM-YYYY');

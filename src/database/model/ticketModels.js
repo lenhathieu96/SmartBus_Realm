@@ -35,3 +35,7 @@ export const AllocationSchema = {
     end_number: 'int',
   },
 };
+
+export const transactionSchema = {
+  name: 'Transaction',
+};
