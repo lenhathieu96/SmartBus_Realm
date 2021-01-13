@@ -40,34 +40,29 @@ export default function BusTicketScreen() {
     }
   };
 
-  const getArriveStation = (stationIndex, ticketDistance) => {
-    console.log(stationIndex);
-    const distance = getPreciseDistance(
-      {
-        latitude: vehicleProfile.current_station.lat,
-        longitude: vehicleProfile.current_station.lng,
-      },
-      {
-        latitude: vehicleProfile.stationList[45].lat,
-        longitude: vehicleProfile.stationList[45].lng,
-      },
-      0.1,
+  const getArriveStation = (ticketDistance) => {
+    const stationList = vehicleProfile.stationList;
+    let currentDistance = vehicleProfile.current_station.distance;
+    const stationIndex = stationList.findIndex(
+      (station) => station.distance >= currentDistance + ticketDistance,
     );
-    console.log(distance);
-    console.log(vehicleProfile.stationList[45]);
-    // return distance + 2500 > ticketDistance
-    //   ? getArriveStation(stationIndex - 1, ticketDistance)
-    //   : vehicleProfile.stationList[stationIndex];
+
+    if (stationIndex >= 0) {
+      if (stationList[stationIndex].distance === ticketDistance) {
+        return stationList[stationIndex];
+      } else {
+        return stationList[stationIndex - 1];
+      }
+    } else {
+      return stationList[stationList.length - 1];
+    }
   };
 
   const chargeNormalTicket = async (ticketData) => {
     try {
       let maxDistance = ticketData.number_km;
-      const averageStationIndex = Math.floor(
-        maxDistance / AVERAGE_STATION_DISTANCE,
-      );
-      const arriveStation = getArriveStation(averageStationIndex, maxDistance);
-      console.log(arriveStation);
+      const arriveStation = getArriveStation(maxDistance);
+      console.log(arriveStation, 'arrive station');
       // const result = await PrintModule.printFreeTicket(
       //   'QT-NT',
       //   'dia chi ne',

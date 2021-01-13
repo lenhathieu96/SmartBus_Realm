@@ -11,13 +11,13 @@ import {bigger} from '../../../utils/Fontsize';
 const Dashboardstack = createStackNavigator();
 
 export default function DashboardStack() {
-  const {PrintModule} = NativeModules;
+  // const {PrintModule} = NativeModules;
 
   const userProfile = useSelector((state) => state.user);
   const deviceState = useSelector((state) => state.device);
 
   useEffect(() => {
-    PrintModule.init();
+    // PrintModule.init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceState.printAvailable]);
 
