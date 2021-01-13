@@ -11,7 +11,7 @@ import {getDepartStation} from '../../database/controller/vehicleControllers';
 import {setVehicleDirection} from '../../redux/actionCreator/vehicleActions';
 import {setLogin} from '../../redux/actionCreator/authActions';
 
-import {getTimestamp} from '../../utils/Libs';
+import {getCurrentTime} from '../../utils/Libs';
 
 import * as fontSize from '../../utils/Fontsize';
 import styles from './styles';
@@ -59,7 +59,7 @@ export default function DirectionScreen({navigation}) {
       dispatch(setVehicleDirection(vehicleData));
       let userData = [
         {
-          timestamp: getTimestamp(),
+          timestamp: getCurrentTime(),
           action: 'login',
           subject_type: 'user',
           user_id: user.main_id,

@@ -111,8 +111,6 @@ public class GPSTrackingService extends Service {
                                 Bundle bundle = new Bundle();
                                 bundle.putDouble("latitude", vehicleLatitude );
                                 bundle.putDouble("longitude",vehicleLongitude);
-                                Log.d("devH", gson.toJson(vehicle));
-                                Log.d("devH", String.valueOf(mSocket.connected()));
                                 String vehicleJSON = gson.toJson(vehicle);
 
                                 JSONObject vehicleObject =  new JSONObject(vehicleJSON);

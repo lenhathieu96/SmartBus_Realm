@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import queryString from 'query-string';
 
-import {getTimestamp} from '../utils/Libs';
+import {getCurrentTime} from '../utils/Libs';
 import global from '../utils/Global';
 
 const axiosClient = axios.create({
@@ -16,7 +16,7 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use(async (config) => {
   const imei = await AsyncStorage.getItem('@imei');
-  const timestamp = getTimestamp();
+  const timestamp = getCurrentTime();
   if (imei) {
     config.headers.common.Accept = 'application/json; charset=utf-8';
     config.headers['X-IMEI'] = '359261051233786';

@@ -1,13 +1,13 @@
 // import Intl from 'intl';
 // import 'intl/locale-data/jsonp/en';
 import Moment from 'moment';
-// import NfcManager, {Ndef} from 'react-native-nfc-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import CryptoJS from 'crypto-js';
 // import RNFS from 'react-native-fs';
 import global from './Global';
 // import Sound from 'react-native-sound';
 import IMEI from 'react-native-imei';
+
 // export function downloadSound({url_sound, callback = () => {}}) {
 //   try {
 //     var filePath = RNFS.DocumentDirectoryPath + '/' + url_sound;
@@ -129,16 +129,10 @@ export function calDedution(price, deduction) {
   return price - (price * deduction) / 100;
 }
 
-export function convertStringToNum(str) {
-  let tmp = str.split(',');
-  return parseInt(tmp.join(''));
-}
-
-export async function checkModuleApp(key) {
-  const s = await AsyncStorage.getItem('@shift');
-  const shift = JSON.parse(s);
-  const index = shift.findIndex((el) => el.active == 1);
-  return shift[index].module_company.includes(key);
+export function getCurrentTime(isFormat) {
+  return isFormat
+    ? Moment().locale('vi-VN').format('DD-MM-YYYY HH:mm:ss')
+    : Moment.now();
 }
 
 export function format_ticket(num) {
@@ -167,385 +161,343 @@ export function format_ticket(num) {
   }
 }
 
-// export async function hadleStationCurrent(bus_station_data) {
-//   try {
-//     var e = await AsyncStorage.getItem('@COORDINATES');
-//     if (e !== null) {
-//       let {lat, lng} = JSON.parse(e);
-//       station = await getStation(bus_station_data, {lat, lng});
-//     }
-//     return station;
-//   } catch (e) {
-//     return station;
+// export function convertStringToNum(str) {
+//   let tmp = str.split(',');
+//   return parseInt(tmp.join(''));
+// }
+
+// export async function checkModuleApp(key) {
+//   const s = await AsyncStorage.getItem('@shift');
+//   const shift = JSON.parse(s);
+//   const index = shift.findIndex((el) => el.active == 1);
+//   return shift[index].module_company.includes(key);
+// }
+
+// // export async function hadleStationCurrent(bus_station_data) {
+// //   try {
+// //     var e = await AsyncStorage.getItem('@COORDINATES');
+// //     if (e !== null) {
+// //       let {lat, lng} = JSON.parse(e);
+// //       station = await getStation(bus_station_data, {lat, lng});
+// //     }
+// //     return station;
+// //   } catch (e) {
+// //     return station;
+// //   }
+// // }
+
+// // export async function getCurrentPosition() {
+// //   try {
+// //     const full_path = RNFS.DocumentDirectoryPath + '/Location/gps';
+// //     const p = await RNFS.readFile(full_path, 'utf8');
+// //     return JSON.parse(p);
+// //   } catch (e) {
+// //     return null;
+// //   }
+// // }
+
+// export function findUri(txt) {
+//   return txt.indexOf('/') === -1;
+// }
+
+// export function distance(lat1, lng1, lat2, lng2, value = null) {
+//   // console.log('distance', lat1, lng1, lat2, lng2);
+//   var unit = 'K';
+//   if (
+//     (lat1 === lat2 && lng1 === lng2) ||
+//     (lat1 || lng1 || lat2 || lng2) === undefined
+//   ) {
+//     return 0;
+//   }
+//   var radlat1 = (Math.PI * lat1) / 180;
+//   var radlat2 = (Math.PI * lat2) / 180;
+//   var theta = lng1 - lng2;
+//   var radtheta = (Math.PI * theta) / 180;
+//   var dist =
+//     Math.sin(radlat1) * Math.sin(radlat2) +
+//     Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+//   if (dist > 1) {
+//     dist = 1;
+//   }
+//   dist = Math.acos(dist);
+//   dist = (dist * 180) / Math.PI;
+//   dist = dist * 60 * 1.1515;
+//   if (unit == 'K') {
+//     dist = dist * 1.609344;
+//   }
+//   if (unit == 'N') {
+//     dist = dist * 0.8684;
+//   }
+//   if (value === null) {
+//     return dist;
+//   } else {
+//     return dist * value;
 //   }
 // }
 
-export async function getStation(data, cur = null, s_station = null) {
-  try {
-    if (cur === null) {
-      const p = await AsyncStorage.getItem('@position');
-      cur = JSON.parse(p);
-    }
-    let arrayM = [];
-    for (let i = 0; i < data.length; i++) {
-      // if(s_station!==null && data[i].id === s_station.id) continue;
-      arrayM.push(distance(cur.lat, cur.lng, data[i].lat, data[i].lng, 1000));
-    }
-    const min = Math.min(...arrayM);
-    const index_arr =
-      s_station !== null
-        ? s_station === 1
-          ? arrayM.indexOf(min) - 1
-          : arrayM.indexOf(min) + 1
-        : arrayM.indexOf(min);
-    return data[index_arr];
-  } catch (e) {
-    //
-  }
-}
-
-// export async function getCurrentPosition() {
+// export function checkCountMonth(str) {
 //   try {
-//     const full_path = RNFS.DocumentDirectoryPath + '/Location/gps';
-//     const p = await RNFS.readFile(full_path, 'utf8');
-//     return JSON.parse(p);
+//     str = str.toString();
+//     if (str.length === 1) {
+//       str = `0${str}`;
+//     }
+//     const regex = /[0-9]{2}/;
+//     var rs = str.match(regex);
+//     const num = parseInt(rs[0]);
+//     if (num > 12) {
+//       return 12;
+//     } else {
+//       return num;
+//     }
 //   } catch (e) {
 //     return null;
 //   }
 // }
 
-export function findUri(txt) {
-  return txt.indexOf('/') === -1;
-}
-
-// export function buildUrlPayload(valueToWrite) {
-//   return Ndef.encodeMessage([Ndef.uriRecord(valueToWrite)]);
-// }
-
-// export function buildTextPayload(valueToWrite) {
-//   return Ndef.encodeMessage([Ndef.textRecord(valueToWrite)]);
-// }
-
-// export function parseUriNFC(tag) {
+// export async function genNumberGoods() {
 //   try {
-//     if (Ndef.isType(tag.ndefMessage[0], Ndef.TNF_WELL_KNOWN, Ndef.RTD_URI)) {
-//       return Ndef.uri.decodePayload(tag.ndefMessage[0].payload);
+//     var IM = IMEI.getImei();
+//     var num = await AsyncStorage.getItem('@qtyNumGoods');
+//     if (num === '-1') {
+//       return num;
+//     } else {
+//       var stt = '01';
+//       var time = Moment().format('DDMMYY');
+//       if (num !== null) {
+//         num = JSON.parse(num);
+//         if (Moment().format('YYYY-MM-DD') === num.day) {
+//           if (num.stt < 9) {
+//             stt = `0${num.stt + 1}`;
+//           } else {
+//             stt = `${num.stt + 1}`;
+//           }
+//         } else if (Moment().format('YYYY-MM-DD') < num.day) {
+//           time = Moment(num.day).format('DDMMYY');
+//           if (num.stt < 9) {
+//             stt = `0${num.stt + 1}`;
+//           } else {
+//             stt = `${num.stt + 1}`;
+//           }
+//         }
+//       }
+//       return `${IM.substring(IM.length - 6)}${time}-${stt}`;
 //     }
 //   } catch (e) {
 //     //
 //   }
-//   return null;
+// }
+// // export function encrypt(data, key) {
+// //   return CryptoJS.AES.encrypt(JSON.stringify(data), key).toString();
+// // }
+
+// // export function decrypt(data, key) {
+// //   return JSON.parse(
+// //     CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8),
+// //   );
+// // }
+
+// export function getTimeLogin(timestamp) {
+//   return Moment.unix(timestamp).format('HH:mm:ss DD-MM-YYYY');
 // }
 
-// export function parseTextNFC(tag) {
+// export function getNowDB() {
+//   return Moment().format('YYYY-MM-DD HH:mm:ss');
+// }
+
+// export function getNow(str = null) {
+//   let time = str;
+//   if (str === null) {
+//     time = Moment().format('YYYY-MM-DD');
+//   }
+//   return time.split(' ')[0].split('-').map(Number);
+// }
+// // export function getNumDayToTimeTamp(str) {
+// //   return str
+// //     .split(' ')[0]
+// //     .split('-')
+// //     .map(Number);
+// // }
+// // export function getNumYearMonthNow() {
+// //   return Moment()
+// //     .format('YYYY-MM-DD')
+// //     .split('-')
+// //     .map(Number);
+// // }
+
+// export function getHours(timestamp) {
+//   return Moment.unix(timestamp).format('HH:mm:ss');
+// }
+
+// export function get_month_year(str = null) {
+//   str = strTimeDB(str);
+//   if (str === null) {
+//     return Moment().format('MM-YYYY');
+//   }
+//   return Moment(str).format('MM-YYYY');
+// }
+// export function get_day_month_year(str) {
+//   let ex = str.split(' ')[0];
+
+//   return `${ex.split('-')[2]}-${ex.split('-')[1]}-${ex.split('-')[0]}`;
+// }
+
+// export function strTimeDB(str) {
+//   if (str == null) {
+//     return null;
+//   }
+//   let tmp = str.split('-');
+//   let month = parseInt(tmp[0]);
+//   let year = parseInt(tmp[1]);
+
+//   if (month > year) {
+//     if (year < 10) {
+//       year = `0${year}`;
+//     }
+//     str = `${month}-${year}`;
+//   } else {
+//     if (month < 10) {
+//       month = `0${month}`;
+//     }
+//     str = `${year}-${month}`;
+//   }
+//   return str;
+// }
+
+// export function checkExpWithNow(str) {
 //   try {
-//     if (Ndef.isType(tag.ndefMessage[0], Ndef.TNF_WELL_KNOWN, Ndef.RTD_TEXT)) {
-//       return Ndef.text.decodePayload(tag.ndefMessage[0].payload);
+//     str = strTimeDB(str);
+//     if (str == null) {
+//       return false;
+//     }
+
+//     const now = Moment().format('YYYY-MM');
+//     const exp = Moment(str).format('YYYY-MM');
+//     if (exp < now) {
+//       return true;
+//     } else {
+//       return false;
+//     }
+//   } catch (e) {
+//     return false;
+//   }
+// }
+// export function addOneMonth(str, count_month = 1) {
+//   try {
+//     str = strTimeDB(str);
+//     if (str == null) {
+//       return Moment().format('MM-YYYY');
+//     }
+//     return Moment(str).add(count_month, 'months').format('MM-YYYY');
+//   } catch (e) {
+//     //
+//   }
+// }
+
+// export function convertStartMonth(str, count_month = null) {
+//   try {
+//     str = strTimeDB(str);
+//     if (str == null) {
+//       return false;
+//     }
+
+//     if (count_month === null) {
+//       return Moment(str).format('YYYY-MM-DD 00:00:00');
+//     } else {
+//       return Moment(str)
+//         .add(count_month, 'months')
+//         .format('YYYY-MM-DD 00:00:00');
 //     }
 //   } catch (e) {
 //     //
 //   }
-//   return null;
 // }
 
-export function distance(lat1, lng1, lat2, lng2, value = null) {
-  // console.log('distance', lat1, lng1, lat2, lng2);
-  var unit = 'K';
-  if (
-    (lat1 === lat2 && lng1 === lng2) ||
-    (lat1 || lng1 || lat2 || lng2) === undefined
-  ) {
-    return 0;
-  }
-  var radlat1 = (Math.PI * lat1) / 180;
-  var radlat2 = (Math.PI * lat2) / 180;
-  var theta = lng1 - lng2;
-  var radtheta = (Math.PI * theta) / 180;
-  var dist =
-    Math.sin(radlat1) * Math.sin(radlat2) +
-    Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-  if (dist > 1) {
-    dist = 1;
-  }
-  dist = Math.acos(dist);
-  dist = (dist * 180) / Math.PI;
-  dist = dist * 60 * 1.1515;
-  if (unit == 'K') {
-    dist = dist * 1.609344;
-  }
-  if (unit == 'N') {
-    dist = dist * 0.8684;
-  }
-  if (value === null) {
-    return dist;
-  } else {
-    return dist * value;
-  }
-}
+// export function convertEndMonth(str, count_month = null) {
+//   try {
+//     str = strTimeDB(str);
+//     if (str == null) {
+//       return false;
+//     }
 
-export function checkCountMonth(str) {
-  try {
-    str = str.toString();
-    if (str.length === 1) {
-      str = `0${str}`;
-    }
-    const regex = /[0-9]{2}/;
-    var rs = str.match(regex);
-    const num = parseInt(rs[0]);
-    if (num > 12) {
-      return 12;
-    } else {
-      return num;
-    }
-  } catch (e) {
-    return null;
-  }
-}
-
-export async function genNumberGoods() {
-  try {
-    var IM = IMEI.getImei();
-    var num = await AsyncStorage.getItem('@qtyNumGoods');
-    if (num === '-1') {
-      return num;
-    } else {
-      var stt = '01';
-      var time = Moment().format('DDMMYY');
-      if (num !== null) {
-        num = JSON.parse(num);
-        if (Moment().format('YYYY-MM-DD') === num.day) {
-          if (num.stt < 9) {
-            stt = `0${num.stt + 1}`;
-          } else {
-            stt = `${num.stt + 1}`;
-          }
-        } else if (Moment().format('YYYY-MM-DD') < num.day) {
-          time = Moment(num.day).format('DDMMYY');
-          if (num.stt < 9) {
-            stt = `0${num.stt + 1}`;
-          } else {
-            stt = `${num.stt + 1}`;
-          }
-        }
-      }
-      return `${IM.substring(IM.length - 6)}${time}-${stt}`;
-    }
-  } catch (e) {
-    //
-  }
-}
-// export function encrypt(data, key) {
-//   return CryptoJS.AES.encrypt(JSON.stringify(data), key).toString();
+//     if (count_month === null) {
+//       return Moment(str).format('YYYY-MM');
+//     } else {
+//       return Moment(str).add(count_month, 'months').format('YYYY-MM');
+//     }
+//   } catch (e) {
+//     //
+//   }
 // }
 
-// export function decrypt(data, key) {
-//   return JSON.parse(
-//     CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8),
-//   );
-// }
+// export function format_month_exp(str) {
+//   str = strTimeDB(str);
+//   if (str === null) {
+//     return Moment().format('MM-YYYY');
+//   }
 
-export function getTimeLogin(timestamp) {
-  return Moment.unix(timestamp).format('HH:mm:ss DD-MM-YYYY');
-}
-
-export function getNowDB() {
-  return Moment().format('YYYY-MM-DD HH:mm:ss');
-}
-
-export function getNow(str = null) {
-  let time = str;
-  if (str === null) {
-    time = Moment().format('YYYY-MM-DD');
-  }
-  return time.split(' ')[0].split('-').map(Number);
-}
-// export function getNumDayToTimeTamp(str) {
-//   return str
-//     .split(' ')[0]
-//     .split('-')
-//     .map(Number);
-// }
-// export function getNumYearMonthNow() {
-//   return Moment()
-//     .format('YYYY-MM-DD')
-//     .split('-')
-//     .map(Number);
-// }
-
-export function getHours(timestamp) {
-  return Moment.unix(timestamp).format('HH:mm:ss');
-}
-
-export function get_month_year(str = null) {
-  str = strTimeDB(str);
-  if (str === null) {
-    return Moment().format('MM-YYYY');
-  }
-  return Moment(str).format('MM-YYYY');
-}
-export function get_day_month_year(str) {
-  let ex = str.split(' ')[0];
-
-  return `${ex.split('-')[2]}-${ex.split('-')[1]}-${ex.split('-')[0]}`;
-}
-
-export function strTimeDB(str) {
-  if (str == null) {
-    return null;
-  }
-  let tmp = str.split('-');
-  let month = parseInt(tmp[0]);
-  let year = parseInt(tmp[1]);
-
-  if (month > year) {
-    if (year < 10) {
-      year = `0${year}`;
-    }
-    str = `${month}-${year}`;
-  } else {
-    if (month < 10) {
-      month = `0${month}`;
-    }
-    str = `${year}-${month}`;
-  }
-  return str;
-}
-
-export function checkExpWithNow(str) {
-  try {
-    str = strTimeDB(str);
-    if (str == null) {
-      return false;
-    }
-
-    const now = Moment().format('YYYY-MM');
-    const exp = Moment(str).format('YYYY-MM');
-    if (exp < now) {
-      return true;
-    } else {
-      return false;
-    }
-  } catch (e) {
-    return false;
-  }
-}
-export function addOneMonth(str, count_month = 1) {
-  try {
-    str = strTimeDB(str);
-    if (str == null) {
-      return Moment().format('MM-YYYY');
-    }
-    return Moment(str).add(count_month, 'months').format('MM-YYYY');
-  } catch (e) {
-    //
-  }
-}
-
-export function convertStartMonth(str, count_month = null) {
-  try {
-    str = strTimeDB(str);
-    if (str == null) {
-      return false;
-    }
-
-    if (count_month === null) {
-      return Moment(str).format('YYYY-MM-DD 00:00:00');
-    } else {
-      return Moment(str)
-        .add(count_month, 'months')
-        .format('YYYY-MM-DD 00:00:00');
-    }
-  } catch (e) {
-    //
-  }
-}
-
-export function convertEndMonth(str, count_month = null) {
-  try {
-    str = strTimeDB(str);
-    if (str == null) {
-      return false;
-    }
-
-    if (count_month === null) {
-      return Moment(str).format('YYYY-MM');
-    } else {
-      return Moment(str).add(count_month, 'months').format('YYYY-MM');
-    }
-  } catch (e) {
-    //
-  }
-}
-
-export function format_month_exp(str) {
-  str = strTimeDB(str);
-  if (str === null) {
-    return Moment().format('MM-YYYY');
-  }
-
-  const now = Moment().format('YYYY-MM');
-  const exp = Moment(str).format('YYYY-MM');
-  if (exp < now) {
-    return Moment().format('MM-YYYY');
-  } else {
-    return Moment(str).add(1, 'months').format('MM-YYYY');
-  }
-}
-
-export function get_year_month() {
-  return Moment().format('YYYY-MM');
-}
-
-// export function get_next_year_month(str) {
-//   time = str.split('-').map(Number);
-//   if (time[1] === 12) {
-//     return `${time[0] + 1}-1`;
+//   const now = Moment().format('YYYY-MM');
+//   const exp = Moment(str).format('YYYY-MM');
+//   if (exp < now) {
+//     return Moment().format('MM-YYYY');
 //   } else {
-//     return `${time[0]}-${time[1] + 1}`;
-//   }
-// }
-// export function get_next_month_year(str) {
-//   time = str.split('-').map(Number);
-//   if (time[1] === 12) {
-//     return `1-${time[0] + 1}`;
-//   } else {
-//     return `${time[1] + 1}-${time[0]}`;
+//     return Moment(str).add(1, 'months').format('MM-YYYY');
 //   }
 // }
 
-export function getDay(timestamp) {
-  return Moment.unix(timestamp).format('DD-MM-YYYY');
-}
-
-export function getDateTime(timestamp = null) {
-  if (timestamp === null) {
-    return '';
-  }
-  return Moment.unix(timestamp).format('DD-MM-YYYY HH:mm:ss');
-}
-
-export function getIndexShiftById(arr, shift_id) {
-  return arr.findIndex((el) => el.shift_id === shift_id);
-}
-
-export function getIndexShiftByActive(arr) {
-  return arr.findIndex((el) => el.active === 1);
-}
-
-export function getTimestamp() {
-  let timestamp = new Date().getTime();
-  return Math.floor(timestamp / 1000);
-}
-
-// export function format_number_milion(number) {
-//   if (number !== null) {
-//     let Nber = number.toLocaleString().split(',').join('');
-//     const fm = new Intl.NumberFormat();
-//     result = fm.format(parseInt(Nber));
-//     return result;
-//   }
+// export function get_year_month() {
+//   return Moment().format('YYYY-MM');
 // }
 
-export function format_number(value, dv = null) {
-  return Number(value).toLocaleString().split(',').join('.');
-}
+// // export function get_next_year_month(str) {
+// //   time = str.split('-').map(Number);
+// //   if (time[1] === 12) {
+// //     return `${time[0] + 1}-1`;
+// //   } else {
+// //     return `${time[0]}-${time[1] + 1}`;
+// //   }
+// // }
+// // export function get_next_month_year(str) {
+// //   time = str.split('-').map(Number);
+// //   if (time[1] === 12) {
+// //     return `1-${time[0] + 1}`;
+// //   } else {
+// //     return `${time[1] + 1}-${time[0]}`;
+// //   }
+// // }
+
+// export function getDay(timestamp) {
+//   return Moment.unix(timestamp).format('DD-MM-YYYY');
+// }
+
+// export function getDateTime(timestamp = null) {
+//   if (timestamp === null) {
+//     return '';
+//   }
+//   return Moment.unix(timestamp).format('DD-MM-YYYY HH:mm:ss');
+// }
+
+// export function getIndexShiftById(arr, shift_id) {
+//   return arr.findIndex((el) => el.shift_id === shift_id);
+// }
+
+// export function getIndexShiftByActive(arr) {
+//   return arr.findIndex((el) => el.active === 1);
+// }
+
+// export function getTimestamp() {
+//   let timestamp = new Date().getTime();
+//   return Math.floor(timestamp / 1000);
+// }
+
+// // export function format_number_milion(number) {
+// //   if (number !== null) {
+// //     let Nber = number.toLocaleString().split(',').join('');
+// //     const fm = new Intl.NumberFormat();
+// //     result = fm.format(parseInt(Nber));
+// //     return result;
+// //   }
+// // }
+
+// export function format_number(value, dv = null) {
+//   return Number(value).toLocaleString().split(',').join('.');
+// }

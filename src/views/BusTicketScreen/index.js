@@ -1,28 +1,29 @@
 import React, {useEffect, useState} from 'react';
-import {Text, FlatList, NativeModules, Alert} from 'react-native';
+import {Text, FlatList, Alert} from 'react-native';
+
 import {useSelector} from 'react-redux';
 import 'intl';
 import 'intl/locale-data/jsonp/vi-VN';
-import {getPreciseDistance} from 'geolib';
-const apiKey = 'AIzaSyCMQcc8wB5qX0LjgzcpdFRoiNu5HU65n0I';
+
 import {
   getTicketForRoute,
   updateAllocation,
+  insertTransaction,
 } from '../../database/controller/ticketControllers';
+import {getCurrentTime, format_ticket} from '../../utils/Libs';
 
 import TextButton from '../../component/TextButton';
 
 import styles from './styles';
 
 import RootContainer from '../../component/RootContainer';
+import {PrintBusTicket} from '../../utils/Print';
 
 export default function BusTicketScreen() {
-  const AVERAGE_STATION_DISTANCE = 500;
-  const {PrintModule} = NativeModules;
-
   const [ticketList, setTicketList] = useState([]);
 
   const vehicleProfile = useSelector((state) => state.vehicle);
+  const user = useSelector((state) => state.user);
 
   useEffect(() => {
     getTicketData();
@@ -42,17 +43,16 @@ export default function BusTicketScreen() {
 
   const getArriveStation = (ticketDistance) => {
     const stationList = vehicleProfile.stationList;
-    let currentDistance = vehicleProfile.current_station.distance;
-    const stationIndex = stationList.findIndex(
-      (station) => station.distance >= currentDistance + ticketDistance,
-    );
-
-    if (stationIndex >= 0) {
-      if (stationList[stationIndex].distance === ticketDistance) {
-        return stationList[stationIndex];
-      } else {
-        return stationList[stationIndex - 1];
-      }
+    const distance =
+      vehicleProfile.direction === 0
+        ? vehicleProfile.current_station.distance + ticketDistance //tuyến đi
+        : vehicleProfile.current_station.distance - ticketDistance; // tuyến về
+    const index =
+      vehicleProfile.direction === 0
+        ? stationList.findIndex((station) => station.distance > distance) //tuyến đi
+        : stationList.findIndex((station) => station.distance < distance); // tuyến về
+    if (index >= 0) {
+      return stationList[index - 1];
     } else {
       return stationList[stationList.length - 1];
     }
@@ -61,25 +61,39 @@ export default function BusTicketScreen() {
   const chargeNormalTicket = async (ticketData) => {
     try {
       let maxDistance = ticketData.number_km;
+      const allocation = await updateAllocation(ticketData.id);
       const arriveStation = getArriveStation(maxDistance);
-      console.log(arriveStation, 'arrive station');
-      // const result = await PrintModule.printFreeTicket(
-      //   'QT-NT',
-      //   'dia chi ne',
-      //   'so dien thoai ne',
-      //   'tax code ne',
-      //   'number day',
-      //   'ten tram',
-      //   'fullname',
-      //   'fullname_customer',
-      //   'time',
-      //   'ngay het han',
-      // );
-      // if (result) {
-      //   console.log('print success');
-      // }
+
+      ticketData.start_station = vehicleProfile.current_station.address;
+      ticketData.arrive_station = arriveStation.address;
+      ticketData.time = getCurrentTime('format');
+      ticketData.allocation = format_ticket(allocation);
+
+      let transactionData = {
+        ticket_type_id: ticketData.id,
+        ticket_number: ticketData.allocation,
+        station_id: vehicleProfile.current_station.id,
+        amount: ticketData.price,
+        station_down: ticketData.arrive_station,
+        type: 'pos',
+        sign: ticketData.sign,
+      };
+      console.log(user.main_id);
+      await insertTransaction(
+        getCurrentTime(),
+        'insert-ticket',
+        'ticket',
+        JSON.stringify(transactionData),
+        user.main_id,
+      );
+
+      //Format ticket price for print ticket
+      ticketData.price = new Intl.NumberFormat('vi-VN').format(
+        ticketData.price,
+      );
+      // await PrintBusTicket(company, vehicleProfile, ticketData);
     } catch (error) {
-      console.log('Error on sell ticket: ', error);
+      console.log('Error on purchase ticket: ', error);
       if (error.code === 'Out of Paper') {
         Alert.alert('Thông Báo!', 'Hết Giấy');
       }

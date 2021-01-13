@@ -136,6 +136,7 @@ export const getTicketForRoute = async (routeID) => {
   }
 };
 
+// Kiểm tra và cấp thêm vé
 export const updateAllocation = async (ticketID) => {
   try {
     const realm = await getRealm([TicketModel.AllocationSchema]);
@@ -148,14 +149,45 @@ export const updateAllocation = async (ticketID) => {
         ticketAllocation.start_number = ticketAllocation.start_number += 1;
         realm.create('Allocation', ticketAllocation, 'modified');
       });
-      console.log(
-        ticketAllocation.start_number + 500 === ticketAllocation.end_number,
-      );
+      let result = JSON.parse(JSON.stringify(ticketAllocation));
+      realm.close();
+      return result.start_number;
     } else {
-      console.log('no ticket found');
+      realm.close();
+      throw 'No Ticket Found';
     }
-    realm.close();
   } catch (error) {
     return Promise.reject(` update ticket allocation failed: ${error}`);
+  }
+};
+
+//Lưu và upload các giao dịch
+export const insertTransaction = async (
+  timestamp,
+  action,
+  subject_type,
+  subject_data,
+  user_id,
+) => {
+  try {
+    const realm = await getRealm([TicketModel.TransactionSchema]);
+    realm.write(() => {
+      let data = {
+        timestamp,
+        action,
+        subject_type,
+        subject_data,
+        user_id,
+      };
+      realm.create('Transaction', data);
+      let localTransaction = realm
+        .objects('Transaction')
+        .filtered('is_upload = null');
+      console.log(localTransaction.length);
+    });
+    realm.close();
+  } catch (error) {
+    console.log(error);
+    return Promise.reject('insert transaction failed: ', error);
   }
 };
