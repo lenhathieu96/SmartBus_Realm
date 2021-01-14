@@ -30,7 +30,6 @@ axiosClient.interceptors.response.use(
     if (response && response.status === 200) {
       return response.data;
     } else {
-      console.log(response, 'response');
       return null;
     }
   },

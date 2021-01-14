@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSelector, useDispatch} from 'react-redux';
 import {getPreciseDistance} from 'geolib';
 
-import busAPI from '../../api/busAPI';
+import companyAPI from '../../api/companyAPI';
 import {getCurrentTime} from '../../utils/Libs';
 import {setLogout} from '../../redux/actionCreator/authActions';
 import {updateCurrentStation} from '../../redux/actionCreator/vehicleActions';
@@ -121,7 +121,7 @@ export default function HomeScreen({navigation}) {
         }),
       },
     ];
-    const res = await busAPI.updateActivity(JSON.stringify(userData));
+    const res = await companyAPI.updateActivity(JSON.stringify(userData));
     if (res && res.status) {
       dispatch(setLogout());
     }

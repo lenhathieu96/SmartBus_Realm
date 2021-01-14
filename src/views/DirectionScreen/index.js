@@ -15,6 +15,7 @@ import {getCurrentTime, getTimestamp} from '../../utils/Libs';
 
 import * as fontSize from '../../utils/Fontsize';
 import styles from './styles';
+import companyAPI from '../../api/companyAPI';
 
 export default function DirectionScreen({navigation}) {
   const [isLoading, setLoading] = useState(true);
@@ -75,12 +76,13 @@ export default function DirectionScreen({navigation}) {
           }),
         },
       ];
-      const res = await busAPI.updateActivity(JSON.stringify(userData));
+      const res = await companyAPI.updateActivity(JSON.stringify(userData));
       if (res && res.status) {
         dispatch(setLogin());
       }
     } catch (error) {
       console.log('Error on login : ', error);
+      chooseBtn(undefined);
     }
     setAuthen(false);
   };

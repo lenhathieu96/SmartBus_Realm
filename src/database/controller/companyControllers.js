@@ -167,3 +167,64 @@ export const getCompanyModuleData = async () => {
     return Promise.reject(`get company module data failed: ${error}`);
   }
 };
+
+//Lưu và upload các giao dịch
+export const insertActivity = async (
+  timestamp,
+  action,
+  subject_type,
+  subject_data,
+  user_id,
+  retry = 0,
+) => {
+  try {
+    const realm = await getRealm([CompanyModel.ActivitySchema]);
+    realm.write(async () => {
+      try {
+        //First time call function
+        if (retry === 0) {
+          let data = {
+            timestamp,
+            action,
+            subject_type,
+            subject_data,
+            user_id,
+          };
+          realm.create('Activity', data);
+        }
+        //get all local activity for upload
+        let localActivity = realm.objects('Activity');
+        if (localActivity.length > 0) {
+          let chunckActivityArr = []; //chunk array to 10 activity each
+          for (let i = 0; i < localActivity.length; i += 10) {
+            chunckActivityArr.push(localActivity.slice(i, i + 10));
+          }
+
+          //forEach not support for async-await
+          for (const chunckActivity of chunckActivityArr) {
+            await companyAPI.updateActivity(JSON.stringify(chunckActivity));
+            //on upload success, remove all elements in chunkActivity
+            realm.delete(chunckActivity);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        retry += 1;
+        if (retry < 5) {
+          insertActivity(
+            timestamp,
+            action,
+            subject_type,
+            subject_data,
+            user_id,
+            retry,
+          );
+        }
+      }
+    });
+    realm.close();
+    //get all activity haven't uploaded yet
+  } catch (error) {
+    return Promise.reject(error);
+  }
+};

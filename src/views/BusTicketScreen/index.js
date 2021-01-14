@@ -8,8 +8,9 @@ import 'intl/locale-data/jsonp/vi-VN';
 import {
   getTicketForRoute,
   updateAllocation,
-  insertTransaction,
 } from '../../database/controller/ticketControllers';
+import {insertActivity} from '../../database/controller/companyControllers';
+
 import {getCurrentTime, format_ticket} from '../../utils/Libs';
 
 import TextButton from '../../component/TextButton';
@@ -21,6 +22,7 @@ import {PrintBusTicket} from '../../utils/Print';
 
 export default function BusTicketScreen() {
   const [ticketList, setTicketList] = useState([]);
+  const [disable, setDisable] = useState(false);
 
   const vehicleProfile = useSelector((state) => state.vehicle);
   const user = useSelector((state) => state.user);
@@ -60,6 +62,7 @@ export default function BusTicketScreen() {
 
   const chargeNormalTicket = async (ticketData) => {
     try {
+      setDisable(true);
       let maxDistance = ticketData.number_km;
       const allocation = await updateAllocation(ticketData.id);
       const arriveStation = getArriveStation(maxDistance);
@@ -78,7 +81,7 @@ export default function BusTicketScreen() {
         type: 'pos',
         sign: ticketData.sign,
       };
-      await insertTransaction(
+      await insertActivity(
         getCurrentTime(),
         'insert_ticket',
         'ticket',
@@ -91,7 +94,9 @@ export default function BusTicketScreen() {
         ticketData.price,
       );
       // await PrintBusTicket(company, vehicleProfile, ticketData);
+      setDisable(false);
     } catch (error) {
+      setDisable(false);
       console.log('Error on purchase ticket: ', error);
       if (error.code === 'Out of Paper') {
         Alert.alert('Thông Báo!', 'Hết Giấy');
@@ -111,7 +116,8 @@ export default function BusTicketScreen() {
           <TextButton
             text={`${new Intl.NumberFormat('vi-VN').format(item.price)} VNĐ`}
             textStyle={styles.txtBtnTicket}
-            onPress={() => chargeNormalTicket(item)}
+            disabled={disable}
+            onPress={() => chargeNormalTicket({...item})}
             style={styles.btnTicket}
           />
         )}

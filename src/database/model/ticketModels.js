@@ -35,15 +35,3 @@ export const AllocationSchema = {
     end_number: 'int',
   },
 };
-
-export const TransactionSchema = {
-  name: 'Transaction',
-  primaryKey: 'timestamp',
-  properties: {
-    timestamp: 'int',
-    action: 'string',
-    subject_type: 'string',
-    subject_data: 'string',
-    user_id: 'int',
-  },
-};

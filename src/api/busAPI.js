@@ -27,15 +27,6 @@ const busAPI = {
       '/machine/update/database?from=0&subject_type=route_bus_station&action=create';
     return axiosClient.get(url);
   },
-
-  updateActivity: (userData) => {
-    const url = '/machine/update/activities';
-    return axiosClient.post(url, userData, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  },
 };
 
 export default busAPI;

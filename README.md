@@ -25,3 +25,7 @@ Quy trình bán vé :
 - Lưu thông tin giao dịch vào bảng activity
 - Gọi API để upload toàn bộ các activity lên server - nếu có lỗi(timeout ,...) thử lại 5 lần. Quá 5 lần chuyển sang bước tiêp theo
 - In vé
+
+Quy trình cấp vé :
+
+- Kiểm tra số lưong còn lại của vé

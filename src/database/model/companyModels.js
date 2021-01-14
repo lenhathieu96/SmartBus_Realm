@@ -48,3 +48,15 @@ export const UserSchema = {
     role_name: 'string',
   },
 };
+
+export const ActivitySchema = {
+  name: 'Activity',
+  primaryKey: 'timestamp',
+  properties: {
+    timestamp: 'int',
+    action: 'string',
+    subject_type: 'string',
+    subject_data: 'string',
+    user_id: 'int',
+  },
+};

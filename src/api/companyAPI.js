@@ -25,6 +25,15 @@ const companyAPI = {
     }`;
     return axiosClient.get(url);
   },
+
+  updateActivity: (userData) => {
+    const url = '/machine/update/activities';
+    return axiosClient.post(url, userData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  },
 };
 
 export default companyAPI;
