@@ -4,12 +4,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useSelector, useDispatch} from 'react-redux';
 import {getPreciseDistance} from 'geolib';
 
+import busAPI from '../../api/busAPI';
+import {getCurrentTime} from '../../utils/Libs';
+import {setLogout} from '../../redux/actionCreator/authActions';
 import {updateCurrentStation} from '../../redux/actionCreator/vehicleActions';
 
 import RootContainer from '../../component/RootContainer';
 import TextButton from '../../component/TextButton';
-
-import global from '../../utils/Global';
 
 import styles from './styles';
 
@@ -107,6 +108,25 @@ export default function HomeScreen({navigation}) {
     }
   };
 
+  const logOut = async () => {
+    let userData = [
+      {
+        timestamp: getCurrentTime(),
+        action: 'logout',
+        subject_type: 'user',
+        user_id: userProfile.main_id,
+        subject_data: JSON.stringify({
+          vehicle_id: vehicleProfile.id,
+          total_amount: 100000,
+        }),
+      },
+    ];
+    const res = await busAPI.updateActivity(JSON.stringify(userData));
+    if (res && res.status) {
+      dispatch(setLogout());
+    }
+  };
+
   return (
     <RootContainer>
       <View style={styles.btnContainer}>
@@ -145,7 +165,7 @@ export default function HomeScreen({navigation}) {
           style={styles.OptionBtn}
           textStyle={styles.txtOptionBtn}
           text="Tổng Kết & Đăng Xuất"
-          onPress={() => console.log('tong ket')}
+          onPress={() => logOut()}
         />
       </View>
       <View style={styles.profileContainer}>

@@ -6,12 +6,12 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import TextButton from '../../component/TextButton';
 import RootContainer from '../../component/RootContainer';
 
-import authAPI from '../../api/authAPI';
+import busAPI from '../../api/busAPI';
 import {getDepartStation} from '../../database/controller/vehicleControllers';
 import {setVehicleDirection} from '../../redux/actionCreator/vehicleActions';
 import {setLogin} from '../../redux/actionCreator/authActions';
 
-import {getCurrentTime} from '../../utils/Libs';
+import {getCurrentTime, getTimestamp} from '../../utils/Libs';
 
 import * as fontSize from '../../utils/Fontsize';
 import styles from './styles';
@@ -57,6 +57,7 @@ export default function DirectionScreen({navigation}) {
         stationList: direction === 0 ? departStation : returnStation.reverse(),
       };
       dispatch(setVehicleDirection(vehicleData));
+
       let userData = [
         {
           timestamp: getCurrentTime(),
@@ -74,7 +75,7 @@ export default function DirectionScreen({navigation}) {
           }),
         },
       ];
-      const res = await authAPI.login(JSON.stringify(userData));
+      const res = await busAPI.updateActivity(JSON.stringify(userData));
       if (res && res.status) {
         dispatch(setLogin());
       }

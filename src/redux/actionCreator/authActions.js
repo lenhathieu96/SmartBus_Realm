@@ -9,3 +9,9 @@ export const setLogin = () => {
     type: 'SET LOGIN',
   };
 };
+
+export const setLogout = () => {
+  return {
+    type: 'SET LOGOUT',
+  };
+};

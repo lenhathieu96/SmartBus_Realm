@@ -2,6 +2,7 @@ import getRealm from '../../utils/Realm';
 import ticketAPI from '../../api/ticketAPI';
 import * as TicketModel from '../model/ticketModels';
 import {RouteSchema} from '../model/vehicleModel';
+import busAPI from '../../api/busAPI';
 
 export const insertDenomination = async (init) => {
   try {
@@ -168,26 +169,53 @@ export const insertTransaction = async (
   subject_type,
   subject_data,
   user_id,
+  retry,
 ) => {
   try {
     const realm = await getRealm([TicketModel.TransactionSchema]);
-    realm.write(() => {
-      let data = {
+    realm.write(async () => {
+      if (!retry) {
+        let data = {
+          timestamp,
+          action,
+          subject_type,
+          subject_data,
+          user_id,
+        };
+        realm.create('Transaction', data);
+      }
+
+      //get all transaction haven't uploaded yet
+      let localActivity = realm.objects('Transaction');
+      if (localActivity.length > 0) {
+        let chunckActivityArr = []; //chunk array to 10 transactions each
+        for (let i = 0; i < localActivity.length; i += 10) {
+          chunckActivityArr.push(localActivity.slice(i, i + 10));
+        }
+        //forEach not support trợ async-await
+        for (let chunckActivity of chunckActivityArr) {
+          console.log(JSON.stringify(chunckActivity));
+          let result = await busAPI.updateActivity(
+            JSON.stringify(chunckActivity),
+          );
+          console.log(result);
+        }
+      }
+    });
+    realm.close();
+  } catch (error) {
+    retry += 1;
+    if (retry < 5) {
+      insertTransaction(
         timestamp,
         action,
         subject_type,
         subject_data,
         user_id,
-      };
-      realm.create('Transaction', data);
-      let localTransaction = realm
-        .objects('Transaction')
-        .filtered('is_upload = null');
-      console.log(localTransaction.length);
-    });
-    realm.close();
-  } catch (error) {
-    console.log(error);
-    return Promise.reject('insert transaction failed: ', error);
+        retry,
+      );
+    } else {
+      return Promise.reject('insert transaction failed: ', error);
+    }
   }
 };

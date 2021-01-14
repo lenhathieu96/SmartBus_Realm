@@ -45,6 +45,5 @@ export const TransactionSchema = {
     subject_type: 'string',
     subject_data: 'string',
     user_id: 'int',
-    is_upload: 'bool?', //optional property
   },
 };

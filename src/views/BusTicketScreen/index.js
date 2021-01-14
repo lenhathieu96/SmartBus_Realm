@@ -71,17 +71,16 @@ export default function BusTicketScreen() {
 
       let transactionData = {
         ticket_type_id: ticketData.id,
-        ticket_number: ticketData.allocation,
+        ticket_number: allocation,
         station_id: vehicleProfile.current_station.id,
         amount: ticketData.price,
         station_down: ticketData.arrive_station,
         type: 'pos',
         sign: ticketData.sign,
       };
-      console.log(user.main_id);
       await insertTransaction(
         getCurrentTime(),
-        'insert-ticket',
+        'insert_ticket',
         'ticket',
         JSON.stringify(transactionData),
         user.main_id,

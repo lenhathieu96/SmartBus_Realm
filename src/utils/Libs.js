@@ -132,7 +132,7 @@ export function calDedution(price, deduction) {
 export function getCurrentTime(isFormat) {
   return isFormat
     ? Moment().locale('vi-VN').format('DD-MM-YYYY HH:mm:ss')
-    : Moment.now();
+    : Math.floor(Moment.now() / 1000);
 }
 
 export function format_ticket(num) {
@@ -484,10 +484,10 @@ export function format_ticket(num) {
 //   return arr.findIndex((el) => el.active === 1);
 // }
 
-// export function getTimestamp() {
-//   let timestamp = new Date().getTime();
-//   return Math.floor(timestamp / 1000);
-// }
+export function getTimestamp() {
+  let timestamp = new Date().getTime();
+  return Math.floor(timestamp / 1000);
+}
 
 // // export function format_number_milion(number) {
 // //   if (number !== null) {
