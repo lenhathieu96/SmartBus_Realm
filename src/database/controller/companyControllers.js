@@ -195,7 +195,7 @@ export const insertActivity = async (
         //get all local activity for upload
         let localActivity = realm.objects('Activity');
         if (localActivity.length > 0) {
-          let chunckActivityArr = []; //chunk array to 10 activity each
+          let chunckActivityArr = []; //chunk array to 10 activities each
           for (let i = 0; i < localActivity.length; i += 10) {
             chunckActivityArr.push(localActivity.slice(i, i + 10));
           }
@@ -204,10 +204,14 @@ export const insertActivity = async (
           for (const chunckActivity of chunckActivityArr) {
             await companyAPI.updateActivity(JSON.stringify(chunckActivity));
             //on upload success, remove all elements in chunkActivity
-            realm.delete(chunckActivity);
+            realm.write(() => {
+              realm.delete(chunckActivity);
+            });
           }
+          realm.close();
         }
       } catch (error) {
+        realm.close();
         console.log(error);
         retry += 1;
         if (retry < 5) {
@@ -222,9 +226,8 @@ export const insertActivity = async (
         }
       }
     });
-    realm.close();
-    //get all activity haven't uploaded yet
   } catch (error) {
+    console.log(error);
     return Promise.reject(error);
   }
 };

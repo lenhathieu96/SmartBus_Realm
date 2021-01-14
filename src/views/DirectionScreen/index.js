@@ -16,6 +16,7 @@ import {getCurrentTime, getTimestamp} from '../../utils/Libs';
 import * as fontSize from '../../utils/Fontsize';
 import styles from './styles';
 import companyAPI from '../../api/companyAPI';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function DirectionScreen({navigation}) {
   const [isLoading, setLoading] = useState(true);
@@ -79,6 +80,7 @@ export default function DirectionScreen({navigation}) {
       const res = await companyAPI.updateActivity(JSON.stringify(userData));
       if (res && res.status) {
         dispatch(setLogin());
+        await AsyncStorage.setItem('@Working', 'true');
       }
     } catch (error) {
       console.log('Error on login : ', error);

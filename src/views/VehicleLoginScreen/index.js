@@ -14,6 +14,7 @@ import {setVehicleData} from '../../redux/actionCreator/vehicleActions';
 import {getVehicleByRfid} from '../../database/controller/vehicleControllers';
 
 import styles from './styles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function VehicleLoginScreen({navigation}) {
   const dispatch = useDispatch();
@@ -50,6 +51,10 @@ export default function VehicleLoginScreen({navigation}) {
           .filter((setting) => setting.value === '1')
           .map((item) => item.key);
         dispatch(updateSettingGlobal(availableSettings));
+        await AsyncStorage.setItem(
+          '@Setting_Global',
+          JSON.stringify(availableSettings),
+        );
       }
     } catch (error) {
       throw error;
@@ -70,6 +75,7 @@ export default function VehicleLoginScreen({navigation}) {
         };
         await getSettingGlobal();
         dispatch(setVehicleData(vehicleData));
+        await AsyncStorage.setItem('@Vehicle', JSON.stringify(vehicleData));
         navigation.navigate('direction');
       } else {
         Alert.alert('Phương tiện không tồn tại');

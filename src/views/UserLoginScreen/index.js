@@ -14,6 +14,7 @@ import {
 } from '../../database/controller/companyControllers';
 
 import styles from './styles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function UserLoginScreen({navigation}) {
   const dispatch = useDispatch();
@@ -72,6 +73,7 @@ export default function UserLoginScreen({navigation}) {
                 break;
             }
             dispatch(setUserData(userData));
+            await AsyncStorage.setItem('@User', JSON.stringify(userData));
             navigation.navigate('vehicle');
           } else {
             throw 'company or module is empty';
