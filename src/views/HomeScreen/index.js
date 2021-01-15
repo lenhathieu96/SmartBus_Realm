@@ -7,6 +7,7 @@ import {getPreciseDistance} from 'geolib';
 import companyAPI from '../../api/companyAPI';
 import {getCurrentTime} from '../../utils/Libs';
 import {setLogout} from '../../redux/actionCreator/authActions';
+import {clearAllTransactions} from '../../database/controller/ticketControllers';
 import {updateCurrentStation} from '../../redux/actionCreator/vehicleActions';
 
 import RootContainer from '../../component/RootContainer';
@@ -109,21 +110,32 @@ export default function HomeScreen({navigation}) {
   };
 
   const logOut = async () => {
-    let userData = [
-      {
-        timestamp: getCurrentTime(),
-        action: 'logout',
-        subject_type: 'user',
-        user_id: userProfile.main_id,
-        subject_data: JSON.stringify({
-          vehicle_id: vehicleProfile.id,
-          total_amount: 100000,
-        }),
-      },
-    ];
-    const res = await companyAPI.updateActivity(JSON.stringify(userData));
-    if (res && res.status) {
-      dispatch(setLogout());
+    try {
+      let userData = [
+        {
+          timestamp: getCurrentTime(),
+          action: 'logout',
+          subject_type: 'user',
+          user_id: userProfile.main_id,
+          subject_data: JSON.stringify({
+            vehicle_id: vehicleProfile.id,
+            total_amount: 100000,
+          }),
+        },
+      ];
+      const res = await companyAPI.updateActivity(JSON.stringify(userData));
+      if (res && res.status) {
+        clearAllTransactions();
+        dispatch(setLogout());
+        await AsyncStorage.multiRemove([
+          '@User',
+          '@Vehicle',
+          '@Setting_Global',
+        ]);
+      }
+    } catch (error) {
+      Alert.alert('Alert', "Can't Logout");
+      console.log(`Error on logout: ${error}`);
     }
   };
 

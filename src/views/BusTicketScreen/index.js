@@ -6,10 +6,12 @@ import 'intl';
 import 'intl/locale-data/jsonp/vi-VN';
 
 import {
+  getTicketAllocation,
   getTicketForRoute,
   updateAllocation,
 } from '../../database/controller/ticketControllers';
 import {insertActivity} from '../../database/controller/companyControllers';
+import {insertTransaction} from '../../database/controller/ticketControllers';
 
 import {getCurrentTime, format_ticket} from '../../utils/Libs';
 
@@ -64,7 +66,7 @@ export default function BusTicketScreen() {
     try {
       setDisable(true);
       let maxDistance = ticketData.number_km;
-      const allocation = await updateAllocation(ticketData.id);
+      const allocation = await getTicketAllocation(ticketData.id);
       const arriveStation = getArriveStation(maxDistance);
 
       ticketData.start_station = vehicleProfile.current_station.address;
@@ -73,6 +75,7 @@ export default function BusTicketScreen() {
       ticketData.allocation = format_ticket(allocation);
 
       let transactionData = {
+        timestamp: getCurrentTime(),
         ticket_type_id: ticketData.id,
         ticket_number: allocation,
         station_id: vehicleProfile.current_station.id,
@@ -81,13 +84,14 @@ export default function BusTicketScreen() {
         type: 'pos',
         sign: ticketData.sign,
       };
-      await insertActivity(
-        getCurrentTime(),
-        'insert_ticket',
-        'ticket',
-        JSON.stringify(transactionData),
-        user.main_id,
-      );
+      // await insertTransaction(transactionData);
+      // await insertActivity(
+      //   transactionData.timestamp,
+      //   'insert_ticket',
+      //   'ticket',
+      //   JSON.stringify(transactionData),
+      //   user.main_id,
+      // );
 
       //Format ticket price for print ticket
       ticketData.price = new Intl.NumberFormat('vi-VN').format(

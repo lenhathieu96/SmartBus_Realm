@@ -168,7 +168,7 @@ export const getCompanyModuleData = async () => {
   }
 };
 
-//Lưu và upload các giao dịch
+//Save and upload offline activites
 export const insertActivity = async (
   timestamp,
   action,
@@ -212,7 +212,6 @@ export const insertActivity = async (
         }
       } catch (error) {
         realm.close();
-        console.log(error);
         retry += 1;
         if (retry < 5) {
           insertActivity(
@@ -227,7 +226,7 @@ export const insertActivity = async (
       }
     });
   } catch (error) {
-    console.log(error);
+    console.log('Error on operate activity: ', error);
     return Promise.reject(error);
   }
 };

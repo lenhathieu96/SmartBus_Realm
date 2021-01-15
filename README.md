@@ -1,6 +1,6 @@
 # SmartBus_Realm
 
-Dach sách các bảng database:
+\*Dach sách các bảng database:
 
 - Allocation: chứa số lượng vé đang có của từng loại vé
 - Bus_Station: chứa toàn bộ dữ liệu các trạm của cty
@@ -16,16 +16,31 @@ Dach sách các bảng database:
 - Vehicle: chứa thông tin các xe của cty
 - Activity: chứa toàn bộ các hoạt động offline của người dùng - được xóa đi khi activity tương ứng đã được upload lên server
 
-Quy trình bán vé :
+================================================================================================================================
+\*Quy trình cấp vé :
+
+- Kiểm tra số lượng vé còn lại :
+  - Nếu lượng vé còn dưới 100 (end_number - start_number <= 100) :
+    - Không có hàng vé chờ (haveQueue === false):
+      - Gọi API cấp thêm vé
+      - Lưu bộ vé mới vào hàng vé chờ
+      - Thay đổi trạng thái trong DB thành có hàng vé chờ
+    - Có hàng vé chờ (haveQueue === true) :
+      - Nếu start_number < end_number trong DB -> start_number cộng thêm 1
+      - Nếu start_number === end_number:
+      - thay thế start_number và end_number bằng bộ vé chờ mới
+      - Xóa dữ liệu bộ vé chờ
+      - thay đổi trạng thái trong DB thành không có hàng vé chờ
+    - Nếu lượng vé còn trên 100 (end_number - start_number > 100) :
+      - start_number cộng thêm 1
+
+==================================================================================================================================
+\*Quy trình bán vé :
 
 - Chọn vé
-- Kiểm tra lượng vé còn - nếu số lượng gần hết (<100) gọi API để server cấp thêm vé
+- Kiểm tra lượng vé còn -> Quy trình cấp vé
 - Tính toàn các mức khấu trừ nếu giao dịch dùng bằng thẻ
 - Lưu thông tin giao dịch vào bảng transaction
 - Lưu thông tin giao dịch vào bảng activity
 - Gọi API để upload toàn bộ các activity lên server - nếu có lỗi(timeout ,...) thử lại 5 lần. Quá 5 lần chuyển sang bước tiêp theo
 - In vé
-
-Quy trình cấp vé :
-
-- Kiểm tra số lưong còn lại của vé

@@ -33,5 +33,19 @@ export const AllocationSchema = {
     ticket_type_id: 'int',
     start_number: 'int',
     end_number: 'int',
+    haveQueue: 'bool',
+    queue_start: 'int?',
+    queue_end: 'int?',
+  },
+};
+
+export const TransactionSchema = {
+  name: 'Transaction',
+  primaryKey: 'timestamp',
+  properties: {
+    timestamp: 'int',
+    ticket_type_id: 'int',
+    type: 'string',
+    number: 'int',
   },
 };

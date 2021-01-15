@@ -2,8 +2,8 @@ import getRealm from '../../utils/Realm';
 import ticketAPI from '../../api/ticketAPI';
 import * as TicketModel from '../model/ticketModels';
 import {RouteSchema} from '../model/vehicleModel';
-import busAPI from '../../api/busAPI';
 
+//Denomination Schema ==================================================================================================
 export const insertDenomination = async (init) => {
   try {
     const res = init
@@ -34,6 +34,7 @@ export const insertDenomination = async (init) => {
   }
 };
 
+// Ticket Type Schema ==================================================================================================
 export const insertTickectType = async (init) => {
   try {
     const res = await ticketAPI.getTicketType(init ? false : true);
@@ -70,7 +71,6 @@ export const insertTickectType = async (init) => {
     return Promise.reject(`init routes failed: ${error}`);
   }
 };
-
 export const getAllTicketTypeID = async () => {
   try {
     const realm = await getRealm([TicketModel.TicketTypeSchema]);
@@ -87,31 +87,6 @@ export const getAllTicketTypeID = async () => {
     return Promise.reject(`get all ticket type id failed: ${error}`);
   }
 };
-
-export const insertTicketAllocation = async (ticketTypeArr) => {
-  try {
-    const ticketAllocationArr = await ticketAPI.updateAllocateTicket(
-      ticketTypeArr,
-    );
-    const realm = await getRealm([TicketModel.AllocationSchema]);
-    realm.write(() => {
-      ticketAllocationArr.forEach((ticketType) => {
-        let data = {
-          company_id: ticketType.company_id,
-          device_id: ticketType.device_id,
-          ticket_type_id: ticketType.ticket_type_id,
-          start_number: ticketType.start_number,
-          end_number: ticketType.end_number,
-        };
-        realm.create('Allocation', data);
-      });
-    });
-    realm.close();
-  } catch (error) {
-    return Promise.reject(`insert ticket allocation failed: ${error}`);
-  }
-};
-
 export const getTicketForRoute = async (routeID) => {
   try {
     const realm = await getRealm([RouteSchema, TicketModel.TicketTypeSchema]);
@@ -137,8 +112,35 @@ export const getTicketForRoute = async (routeID) => {
   }
 };
 
-// Kiểm tra và cấp thêm vé
-export const updateAllocation = async (ticketID) => {
+// Allocation Schema - Kiểm tra và cấp thêm vé ==========================================================================
+export const insertTicketAllocation = async (ticketTypeArr) => {
+  try {
+    const ticketAllocationArr = await ticketAPI.updateAllocateTicket(
+      ticketTypeArr,
+    );
+    console.log(ticketAllocationArr[0]);
+    const realm = await getRealm([TicketModel.AllocationSchema]);
+    realm.write(() => {
+      ticketAllocationArr.forEach((ticketType) => {
+        let data = {
+          company_id: ticketType.company_id,
+          device_id: ticketType.device_id,
+          ticket_type_id: ticketType.ticket_type_id,
+          start_number: ticketType.start_number,
+          end_number: ticketType.end_number,
+          haveQueue: false,
+        };
+        realm.create('Allocation', data);
+      });
+    });
+    realm.close();
+  } catch (error) {
+    return Promise.reject(`insert ticket allocation failed: ${error}`);
+  }
+};
+
+//Kiểm tra số lượng vé còn
+export const getTicketAllocation = async (ticketID) => {
   try {
     const realm = await getRealm([TicketModel.AllocationSchema]);
     const allAllocations = realm.objects('Allocation');
@@ -146,18 +148,82 @@ export const updateAllocation = async (ticketID) => {
       (item) => item.ticket_type_id === ticketID,
     );
     if (ticketAllocation) {
-      realm.write(() => {
+      if (ticketAllocation.end_number - ticketAllocation.start_number >= 100) {
+        //get new ticket allocation - Cấp thêm vé
+        let allocation = JSON.parse(JSON.stringify(ticketAllocation));
+        realm.close();
+        await updateTicketAllocation(allocation);
+      } else {
         ticketAllocation.start_number = ticketAllocation.start_number += 1;
-        realm.create('Allocation', ticketAllocation, 'modified');
-      });
-      let result = JSON.parse(JSON.stringify(ticketAllocation));
-      realm.close();
-      return result.start_number;
+        realm.write(() => {
+          realm.create('Allocation', ticketAllocation, 'modified');
+        });
+        let result = JSON.parse(JSON.stringify(ticketAllocation));
+        realm.close();
+        return result.start_number;
+      }
     } else {
       realm.close();
-      throw 'No Ticket Found';
+      throw 'Không tìm thấy vé';
     }
   } catch (error) {
-    return Promise.reject(` update ticket allocation failed: ${error}`);
+    return Promise.reject(`get ticket allocation failed: ${error}`);
+  }
+};
+
+//Cấp thêm vé
+const updateTicketAllocation = async (ticketAllocation) => {
+  try {
+    console.log(ticketAllocation, 'ticket allocation');
+    const realm = await getRealm([TicketModel.AllocationSchema]);
+    if (ticketAllocation.haveQueue) {
+      console.log('have queue');
+    } else {
+      //don't have queue
+      const queueTicket = await ticketAPI.updateAllocateTicket([
+        ticketAllocation.ticket_type_id,
+      ]);
+      console.log(queueTicket, 'queue ticket');
+      // ticketAllocation.queue_start = queueTicket[0].start_number;
+      // ticketAllocation.queue_end = queueTicket[0].end_number;
+      // ticketAllocation.haveQueue = true;
+      // realm.write(() => {
+      //   realm.create('Allocation', ticketAllocation, 'modified');
+      // });
+      // realm.close();
+    }
+  } catch (error) {
+    return Promise.reject(`update ticket allocation failed: ${error}`);
+  }
+};
+
+//Transaction Schema ====================================================================================================
+export const insertTransaction = async (ticketData) => {
+  try {
+    const realm = await getRealm([TicketModel.TransactionSchema]);
+    realm.write(() => {
+      let data = {
+        timestamp: ticketData.timestamp,
+        ticket_type_id: ticketData.ticket_type_id,
+        type: ticketData.type,
+        number: ticketData.ticket_number,
+      };
+      realm.create('Transaction', data);
+    });
+    realm.close();
+  } catch (error) {
+    return Promise.reject(`insert transaction failed: ${error}`);
+  }
+};
+export const clearAllTransactions = async () => {
+  try {
+    const realm = await getRealm([TicketModel.TransactionSchema]);
+    realm.write(() => {
+      let allTransactions = realm.objects('Transaction');
+      realm.delete(allTransactions);
+    });
+    realm.close();
+  } catch (error) {
+    return Promise.reject(`clear all transaction failed: ${error}`);
   }
 };
