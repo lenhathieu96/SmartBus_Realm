@@ -88,7 +88,7 @@ export const insertRoutes = async (init) => {
             name: route.name,
             start_time: route.start_time,
             end_time: route.end_time,
-            ticket_data: JSON.parse(route.ticket_data),
+            ticket_data: route.ticket_data ? JSON.parse(route.ticket_data) : [], //>??????????????????
             distance_scan: route.distance_scan ? route.distance_scan : 0,
             timeout_sound: route.timeout_sound ? route.timeout_sound : 0,
             number: route.number,

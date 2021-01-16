@@ -30,7 +30,9 @@ export const insertDenomination = async (init) => {
       }
     }
   } catch (error) {
-    return Promise.reject(`init denomination failed: ${error}`);
+    // ko thể return lỗi
+    // đối với các nhà xe không đăng ký vé hàng, api sẽ trả về lỗi gây kẹt app tầng ngoài (thông báo lấy dữ liêu lỗi)
+    //   return Promise.reject(`init denomination failed: ${error}`);
   }
 };
 
@@ -52,7 +54,7 @@ export const insertTickectType = async (init) => {
             sign_form: element.sign_form ? element.sign_form : '',
             order_code: element.order_code,
             price: element.price,
-            type: element.type,
+            type: element.type ? element.type : 0,
             charge_limit: element.charge_limit ? element.charge_limit : 0,
             number_km: element.number_km ? element.number_km : 0,
           };
@@ -68,7 +70,7 @@ export const insertTickectType = async (init) => {
       }
     }
   } catch (error) {
-    return Promise.reject(`init routes failed: ${error}`);
+    return Promise.reject(`init ticket types failed: ${error}`);
   }
 };
 export const getAllTicketTypeID = async () => {

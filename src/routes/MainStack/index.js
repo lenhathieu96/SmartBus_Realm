@@ -26,11 +26,16 @@ export default function MainStack() {
           '@Vehicle',
           '@Setting_Global',
         ]);
+        if (storageData) {
+          console.log(storageData);
+        } else {
+          throw 'Storage data not failed';
+        }
         console.log(storageData);
         // dispatch(setLogin());
       }
     } catch (error) {
-      console.log('Error On Get Storage Status: ', error);
+      console.log('Error On Get Storage Data: ', error);
     }
   };
   return (
